@@ -15,3 +15,23 @@ Just enter the Neo4j-URL, username and password in the boxes on the right side.
 
 [NOTE]
 I wrote most of it while flying from OSCON 2014 in Portland,OR to Chicago on my way home to Dresden, Germany.
+
+=== Fork
+
+.Converted into Flask app to add Python server, allowing users to browse Neo4j with preset queries and connection only:
+- more secure
+- more convenient and user-friendly
+- easier to reuse code
+
+Tested on Neo4j Server 4.0.3.
+
+.Also made some other changes:
+- allow clicking vertex or edge to show properties in a popup with hyperlinks
+- added a more detailed and searchable DataTables view on a separate page
+- minor UI fixes and debugging improvements
+
+Instructions:
+```
+pip install -r requirements.txt
+python api.py
+```

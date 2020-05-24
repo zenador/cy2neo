@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block pagecss %}
+<style type="text/css">
+ul[role="tablist"] {
+	height: 42px;
+	position: relative;
+}
+.tab-content {
+	height: calc(100% - 43px);
+	overflow: auto;
+}
+#table {
+	padding: 2em;
+}
+
+div.mainbar {
+	width: 100%;
+}
+</style>
+{% endblock pagecss %}
+
+{% block content %}
+<!--
+	<div>
+	<input class="form-control" type="url" value="http://localhost:7474" id="neo4jUrl"/><br/>
+	<input class="form-control" type="text" size="8" value="neo4j" id="neo4jUser"/>
+	<input class="form-control" type="password" size="8" placeholder="password" value="test" id="neo4jPass"/><br/>
+	<textarea name="cypher" id="cypher" rows="4" cols="120" data-lang="cypher" class="code form-control">
+	MATCH (n)-[r]->(m)
+	RETURN n,r,m
+	LIMIT 50;
+	</textarea>
+	<a href="#" title="Execute" id="execute"><i class="fa fa-play-circle-o"></i></a>
+	</div>
+-->
+<div role="tabpanel" class="horzpanel mainbar">
+
+	<!-- Nav tabs -->
+	<ul class="nav nav-tabs" role="tablist">
+		<li role="presentation" class="active"><a href="#graph" aria-controls="home" role="tab" data-toggle="tab">Graph</a></li>
+		<li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab">Table</a></li>
+	</ul>
+
+	<!-- Tab panes -->
+	<div class="tab-content">
+		<div role="tabpanel" class="tab-pane active" id="graph">
+		</div>
+		<div role="tabpanel" class="tab-pane" id="table">
+			<div id="datatable"></div>
+		</div>
+	</div>
+
+</div>
+{% endblock content %}
+
+{% block pagescript %}
+<script type="text/javascript">
+function fadeBarMain() {
+	$("div.mainbar").css("opacity", 0.3);
+}
+function unfadeBarMain() {
+	$("div.mainbar").css("opacity", 1);
+}
+</script>
+{% endblock pagescript %}

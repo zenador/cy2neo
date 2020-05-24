@@ -1,0 +1,152 @@
+{% macro css() -%}
+<link rel="stylesheet" href="/static/styles/cy2neo.css">
+<link rel="stylesheet" href="/static/styles/neod3.css">
+<style type="text/css">
+.popover {
+	max-width: 400px;
+	background-color: black;
+	border: 1px solid black;
+}
+.popover.top > .arrow:after {
+	border-top-color: black;
+}
+.popover.bottom > .arrow:after {
+	border-bottom-color: black;
+}
+.popover.left > .arrow:after {
+	border-left-color: black;
+}
+.popover.right > .arrow:after {
+	border-right-color: black;
+}
+.popover table {
+	color: #ddd;
+}
+.popover table, .popover table td {
+	border: 0;
+}
+.popover table td {
+	padding: 0 0.5em;
+}
+.popover table td:nth-child(1) {
+	font-weight: bold;
+}
+.popover table td:nth-child(2) {
+	overflow-wrap: break-word;
+	word-break: break-all;
+}
+.popover-content {
+	max-height: 400px;
+	overflow: auto;
+}
+</style>
+{%- endmacro %}
+
+{% macro js() -%}
+<script src="/static/scripts/neod3.js"></script>
+<script src="/static/scripts/neod3-visualization.js"></script>
+<!-- <script src="/static/scripts/neo4d3.js"></script>
+<script src="/static/scripts/cy2neod3.js"></script> -->
+<script src="/static/scripts/cypher.datatable.js"></script>
+<script type="text/javascript">
+function executeGraphQuery(endpoint, params, cb) {
+	$.ajax(endpoint, {
+		type: "POST",
+		data: JSON.stringify(params),
+		contentType: "application/json",
+		error: function(err) {
+			cb(err);
+		},
+		success: function(res) {
+			if (res.errors.length > 0) {
+				cb(res.errors);
+			} else {
+				console.log(res.query);
+				var cols = res.results[0].columns;
+				var rows = res.results[0].data.map(function(row) {
+					var r = {};
+					cols.forEach(function(col, index) {
+						r[col] = row.row[index];
+					});
+					return r;
+				});
+				var nodes = [];
+				var rels = [];
+				var labels = [];
+				function findNode(nodes, id) {
+					for (var i=0;i<nodes.length;i++) {
+						if (nodes[i].id == id) return i;
+					}
+					return -1;
+				}
+				res.results[0].data.forEach(function(row) {
+					row.graph.nodes.forEach(function(n) {
+						var found = nodes.filter(function (m) { return m.id == n.id; }).length > 0;
+						if (!found) {
+							//n.props=n.properties;
+							for(var p in n.properties||{}) { n[p]=n.properties[p];delete n.properties[p];} 
+							delete n.properties;
+							nodes.push(n);
+							labels=labels.concat(n.labels.filter(function(l) { labels.indexOf(l) == -1 }))
+						}
+					});
+					rels = rels.concat(row.graph.relationships.map(
+						function(r) { 
+							return { id: r.id, start:r.startNode, end:r.endNode, type:r.type, properties:r.properties }
+						}
+					));
+				});
+				cb(null,{table:rows,graph:{nodes:nodes, links:rels},labels:labels});
+
+				$('[data-toggle="popover"]').popover({
+					"trigger": "manual",
+					"container": "body",
+					"html": true,
+				});
+				$('[data-toggle=popover]').on('mousedown', function (e) {
+					var downPos = [e.pageX, e.pageY];
+					$('[data-toggle=popover]').on('mouseup', function handler(e) {
+						var upPos = [e.pageX, e.pageY];
+						if (downPos[0] == upPos[0] && downPos[1] == upPos[1]) {
+							//click
+							if (e.which == 1)//left mouse button
+								$(this).popover('toggle');
+						} else {
+							//drag
+							if ($(e.target).data('bs.popover').tip().hasClass('in')) {
+								$(this).popover('hide');
+							}
+						}
+						$('[data-toggle=popover]').off('mouseup', handler);
+					});
+				});
+
+				unfadeBarMain();
+			}
+		}
+	});
+}
+
+callGraphQuery = function(endpoint, params, neod3, graphId, tableId) {
+	executeGraphQuery(endpoint, params, function(err,res) {
+		res = res || {}
+		var graph=res.graph;
+		if (graph) {
+			var c=$("#"+graphId);
+			c.empty();
+			neod3.render(graphId, c, graph);
+			renderResult(tableId, res.table);
+		} else {
+			if (err) {
+				console.log(err);
+				if (err.length > 0) {
+					sweetAlert("Cypher error", err[0].code + "\n" + err[0].message, "error");
+				} else {
+					sweetAlert("Ajax " + err.statusText, "Status " + err.status + ": " + err.state(), "error");
+				}
+			}
+		}
+	});
+};
+</script>
+{%- endmacro %}

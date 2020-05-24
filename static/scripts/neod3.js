@@ -93,14 +93,19 @@ neo.models.Graph = (function() {
     var items, source, target, _i, _len;
     items = !neo.utils.isArray(item) ? [item] : item;
     for (_i = 0, _len = items.length; _i < _len; _i++) {
-      item = items[_i];
-      source = this.nodeMap[item.source] || (function() {
-        throw "Invalid source";
-      })();
-      target = this.nodeMap[item.target] || (function() {
-        throw "Invalid target";
-      })();
-      this.relationshipMap[item.id] = new neo.models.Relationship(item.id, source, target, item.type, item.properties);
+      try {
+        item = items[_i];
+        source = this.nodeMap[item.source] || (function() {
+          throw "Invalid source " + item.source;
+        })();
+        target = this.nodeMap[item.target] || (function() {
+          throw "Invalid target " + item.target;
+        })();
+        this.relationshipMap[item.id] = new neo.models.Relationship(item.id, source, target, item.type, item.properties);
+      } catch (err) {
+        console.log(err);
+        continue;
+      }
     }
     return this;
   };
@@ -215,6 +220,9 @@ NeoD3Geometry = (function() {
       node = nodes[_i];
       template = style.forNode(node).get("caption");
       captionText = style.interpolate(template, node.id, node.propertyMap);
+      if (captionText.length > 30) {
+        captionText = captionText.substring(0,30)+" ...";
+      }
       words = captionText.split(" ");
       lines = [];
       for (i = _j = 0, _ref = words.length - 1; 0 <= _ref ? _j <= _ref : _j >= _ref; i = 0 <= _ref ? ++_j : --_j) {
@@ -1430,6 +1438,31 @@ neo.utils.measureText = (function() {
   };
 })();
 
+function genPopover(entity) {
+  var pm = entity.propertyMap;
+  if (Object.keys(pm).length == 0)
+    return null;
+  var text = "";
+  var linkHeader;
+  if (entity instanceof neo.models.Node) {
+    linkHeader = getLinkHeader(pm, entity.labels);
+  } else if (entity instanceof neo.models.Relationship) {
+    linkHeader = getLinkHeaderRel(pm, entity.type);
+  }
+  text += linkHeader;
+  text += "<table>";
+  for (var key in pm) {
+    if (pm.hasOwnProperty(key)) {
+      text += "<tr><td>"+key+"</td><td>"+pm[key]+"</td></tr>";
+    }
+  }
+  text += "</table>";
+  if (linkHeader != "")
+    text += "</a>";
+  return text;
+  //return JSON.stringify(pm);
+}
+
 (function() {
   var arrowPath, nodeCaption, nodeOutline, nodeOverlay, noop, relationshipOverlay, relationshipType;
   noop = function() {};
@@ -1455,7 +1488,11 @@ neo.utils.measureText = (function() {
         },
         'stroke-width': function(node) {
           return viz.style.forNode(node).get('border-width');
-        }
+        },
+        'data-toggle': 'popover',
+        'data-content': function(node) {
+          return genPopover(node);
+        },
       });
       return circles.exit().remove();
     },
@@ -1576,6 +1613,10 @@ neo.utils.measureText = (function() {
         } else {
           return 0;
         }
+      })
+      .attr('data-toggle', 'popover')
+      .attr('data-content', function(edge) {
+        return genPopover(edge);
       });
       return rects.exit().remove();
     },

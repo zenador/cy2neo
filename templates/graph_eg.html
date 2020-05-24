@@ -1,0 +1,47 @@
+{% extends "split.html" %}
+
+{% import 'macros_tables.html' as tables %}
+{% import 'macros_graphs.html' as graphs %}
+
+{% block pagecss %}
+{{ graphs.css() }}
+{{ tables.css() }}
+{{ super() }}
+<style type="text/css">
+table.outer.n0 a {
+	color: inherit;
+}
+</style>
+{% endblock pagecss %}
+
+{% block pagescript %}
+{{ graphs.js() }}
+{{ tables.js() }}
+{{ super() }}
+<script src="/static/scripts/socket.io.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	var params = {{params|tojson}};
+	var neod3 = new Neod3Renderer();
+
+	function load_graph() {
+		fadeBarMain();
+		callGraphQuery("/get_graph", params, neod3, "graph", "datatable");
+	}
+
+	load_graph();
+
+	var socket = io.connect('http://' + document.domain + ':' + location.port);
+	socket.on('connect', function() {
+		//socket.emit('my event', {data: "message"});
+		console.log("I'm connected!");
+	});
+	socket.on('updated', function(r) {
+		console.log(r.info);
+		setTimeout(function() {
+			load_graph();
+		}, 1000);
+	});
+});
+</script>
+{% endblock pagescript %}

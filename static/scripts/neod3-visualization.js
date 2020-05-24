@@ -20,8 +20,8 @@ function Neod3Renderer() {
           text-color-internal: #FFFFFF;\
         }\n";
 
-    var skip = ["id", "start", "end", "source", "target", "labels", "type", "selected","properties"];
-    var prio_props = ["name", "title", "tag", "username", "lastname","caption"];
+    var skip = ["id", "start", "end", "source", "target", "labels", "type", "selected", "properties"];
+    var prio_props = ["name", "title", "tag", "username", "lastname", "caption"];
 
     var serializer = null;
 
@@ -33,7 +33,8 @@ function Neod3Renderer() {
     var URLSupport = 'URL' in window && 'createObjectURL' in window.URL;
     var msBlobSupport = typeof window.navigator.msSaveOrOpenBlob !== 'undefined';
     var svgStyling = '<style>\ntext{font-family:sans-serif}\n</style>';
-    var stylingUrl = window.location.hostname === 'www.neo4j.org' ? 'http://gist.neo4j.org/css/neod3' : 'styles/neod3';
+    // var stylingUrl = window.location.hostname === 'www.neo4j.org' ? 'http://gist.neo4j.org/css/neod3' : 'styles/neod3';
+    var stylingUrl = window.location.hostname === 'www.neo4j.org' ? 'http://gist.neo4j.org/css/neod3' : '/static/styles/neod3';
     if (window.isInternetExplorer) {
         stylingUrl += '-ie.css';
     } else {
@@ -77,7 +78,9 @@ function Neod3Renderer() {
                     var selector = "node." + label(nodes[i]);
                     var selectedKey = selected_keys[0];
                     if (typeof(props[selectedKey]) === "string" && props[selectedKey].length > 30) {
-                        props[selectedKey] = props[selectedKey].substring(0,30)+" ...";
+                        //props[selectedKey] = props[selectedKey].substring(0,30)+" ...";
+                    } else if (props[selectedKey] == 0) {
+                        props[selectedKey] = "0";
                     }
                     style[selector] = style[selector] || selectedKey;
                 }
@@ -99,7 +102,10 @@ function Neod3Renderer() {
         }
         function create_styles(styleCaptions,  styles) {
             var colors = neo.style.defaults.colors;
-            for (var selector in styleCaptions) {
+            //for (var selector in styleCaptions) {
+            var sorted_keys = Object.keys(styleCaptions).sort();
+            for (var key in sorted_keys) {
+                var selector = sorted_keys[key];
                 if (!(selector in styles)) {
                     var color = colors[currentColor];
                     currentColor = (currentColor + 1) % colors.length;
@@ -113,8 +119,11 @@ function Neod3Renderer() {
         }
 
         function applyZoom() {
+            // if (d3.event.sourceEvent.target.tagName == "circle")
+            //     return;
             renderer.select(".nodes").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
             renderer.select(".relationships").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+            $('[data-toggle=popover]').popover('hide');
         }
 
         function enableZoomHandlers() {
@@ -190,7 +199,7 @@ function Neod3Renderer() {
                 enableZoomHandlers();
             }
             else {
-               disableZoomHandlers();
+                disableZoomHandlers();
             }
         }
 
@@ -217,7 +226,7 @@ function Neod3Renderer() {
         var zoomBehavior = d3.behavior.zoom().on("zoom", applyZoom).scaleExtent([0.2, 8]);
 
         renderer.call(graphView);
-        renderer.call(zoomBehavior);
+        renderer.call(zoomBehavior).on("dblclick.zoom", null);
 
         zoomHandlers.wheel = renderer.on("wheel.zoom");
         zoomHandlers.mousewheel = renderer.on("mousewheel.zoom");
@@ -291,11 +300,14 @@ function Neod3Renderer() {
             .replace(/<g/, '\n' + svgStyling + '\n<g');
         return svg;
     }
-
+    /*
     $.get(stylingUrl, function (data) {
-        svgStyling = '<style>\n' + data + '\n</style>';
+        svgStyling = '<style type="text/css">\n' + data + '\n</style>';
         $(svgStyling).appendTo('head');
     });
+    */
+    var svgStyling2 = '<link rel="stylesheet" href="'+stylingUrl+'"></a>'
+    $(svgStyling2).appendTo('head');
 
     return {'render': render};
 }

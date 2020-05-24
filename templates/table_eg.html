@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% import 'macros_tables.html' as tables %}
+
+{% block pagecss %}
+{{ tables.css() }}
+<style type="text/css">
+#body {
+	padding: 2em;
+}
+h4 {
+	text-align: center;
+}
+#tableresult {
+	height: calc(100% - 40px - 7em);
+}
+</style>
+{% endblock pagecss %}
+
+{% block content %}
+<div id="body">
+<h4>{{title}}</h4>
+<div id="tableresult"></div>
+</div>
+{% endblock content %}
+
+{% block pagescript %}
+{{ tables.js() }}
+<script type="text/javascript">
+$(document).ready(function() {
+	var params = {{params|tojson}};
+	$.ajax("/get_table", {
+		type: "POST",
+		data: JSON.stringify(params),
+		contentType: "application/json",
+		success: function(res) {
+			//console.log(JSON.stringify(res));
+			var header = {{header|tojson}};
+			var columns = {{columns|tojson}};
+			var text = genTable(res, header, "");
+			$("#tableresult").html(text);
+			$('table.outer').DataTable({
+				"order": [],
+				"columns": columns,
+			});
+		}
+	});
+});
+</script>
+{% endblock pagescript %}
