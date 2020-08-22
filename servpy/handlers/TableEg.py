@@ -16,9 +16,10 @@ queries = {
 
 class TWeb(Handler):
 	def get(self, query_id="1"):
-		title = queries.get(query_id, {}).get("title", "Unknown")
-		header = queries.get(query_id, {}).get("header", [])
-		columns = queries.get(query_id, {}).get("columns", [])
+		query = queries.get(query_id, {})
+		title = query.get("title", "Unknown")
+		header = query.get("header", [])
+		columns = query.get("columns", [])
 		columns = [{"title": column} for column in columns]
 		params = {
 			"query_id": "{}".format(query_id),

@@ -8,7 +8,7 @@ from handlers import GraphEg, TableEg
 
 api = Api(app)
 
-api.add_resource(GraphEg.GWeb, "/", "/<string:query_id>")
+api.add_resource(GraphEg.GWeb, "/", "/<string:query_id>/<string:entity_id>")
 api.add_resource(GraphEg.GApi, "/get_graph")
 api.add_resource(GraphEg.GUpdate, "/update/<string:info>")
 api.add_resource(TableEg.TWeb, "/table", "/table/<string:query_id>")

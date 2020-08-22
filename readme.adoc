@@ -23,12 +23,15 @@ I wrote most of it while flying from OSCON 2014 in Portland,OR to Chicago on my 
 - more convenient and user-friendly
 - easier to reuse code
 
-Tested on Neo4j Server 4.0.3.
+Tested on Neo4j Server 4.1.1.
 
 .Also made some other changes:
 - allow clicking vertex or edge to show properties in a popup with hyperlinks
-- added a more detailed and searchable DataTables view on a separate page
-- minor UI fixes and debugging improvements
+- add a more detailed and searchable DataTables view on a separate page
+- new option to use separate colours for edges based on type and to hide edge captions
+- allow highlighting focus nodes based on user-defined entity id
+- integrate with socket.io
+- other minor UI fixes and debugging improvements
 
 Instructions:
 ```

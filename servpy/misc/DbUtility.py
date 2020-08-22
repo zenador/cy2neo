@@ -1,6 +1,4 @@
 import requests
-from json import dumps
-from flask import Response
 from neo4j.types.graph import Node
 import re
 
@@ -40,9 +38,7 @@ def getGraph(query):
 		}]
 	}
 	r = requests.post(graph_endpoint, json=params, auth=graph_auth)
-	resp = r.json()
-	resp["query"] = pprintQuery(query)
-	return Response(dumps(resp), mimetype="application/json")
+	return r.json()
 
 # for write queries that don't need to return results
 def runGraphQuery(query):

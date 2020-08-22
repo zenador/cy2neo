@@ -1,5 +1,8 @@
 'use strict';
 (function(){
+const MAX_STR_LEN = 30;
+const HIDE_REL_CAPTIONS = false;
+
 var __hasProp = {}.hasOwnProperty;
 
 window.neo = {};
@@ -220,8 +223,8 @@ NeoD3Geometry = (function() {
       node = nodes[_i];
       template = style.forNode(node).get("caption");
       captionText = style.interpolate(template, node.id, node.propertyMap);
-      if (captionText.length > 30) {
-        captionText = captionText.substring(0,30)+" ...";
+      if (captionText.length > MAX_STR_LEN) {
+        captionText = captionText.substring(0,MAX_STR_LEN)+" \u2026";
       }
       words = captionText.split(" ");
       lines = [];
@@ -368,7 +371,12 @@ NeoD3Geometry = (function() {
       if (relationship.angle < -90 || relationship.angle > 90) {
         relationship.textAngle += 180;
       }
-      _ref = shaftLength > relationship.captionLength ? [relationship.type, relationship.captionLength] : this.shortenCaption(relationship, relationship.type, shaftLength), relationship.shortCaption = _ref[0], relationship.shortCaptionLength = _ref[1];
+      if (HIDE_REL_CAPTIONS)
+        _ref = ["", 0];
+      else
+        _ref = shaftLength > relationship.captionLength ? [relationship.type, relationship.captionLength] : this.shortenCaption(relationship, relationship.type, shaftLength);
+      relationship.shortCaption = _ref[0];
+      relationship.shortCaptionLength = _ref[1];
       if (relationship.captionLayout === "external") {
         startBreak = (shaftLength - relationship.shortCaptionLength) / 2;
         endBreak = shaftLength - startBreak;
@@ -750,6 +758,13 @@ neo.style = (function() {
         'border-color': '#3a7499',
         'text-color-internal': '#FFFFFF'
         }
+    ],
+    colorsLinks: [
+      {
+        color: '#4356C0'
+      }, {
+        color: '#D4D6D7'
+      }
     ],
     style: {
       'node': {
@@ -1463,6 +1478,15 @@ function genPopover(entity) {
   //return JSON.stringify(pm);
 }
 
+function getEid(entity) {
+  var pm = entity.propertyMap;
+  var propName = "eid";
+  if (pm.hasOwnProperty(propName)) {
+    return pm[propName];
+  }
+  return "";
+}
+
 (function() {
   var arrowPath, nodeCaption, nodeOutline, nodeOverlay, noop, relationshipOverlay, relationshipType;
   noop = function() {};
@@ -1492,6 +1516,9 @@ function genPopover(entity) {
         'data-toggle': 'popover',
         'data-content': function(node) {
           return genPopover(node);
+        },
+        'data-eid': function(node) {
+          return getEid(node);
         },
       });
       return circles.exit().remove();

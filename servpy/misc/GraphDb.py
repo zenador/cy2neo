@@ -8,10 +8,11 @@ graph_auth_un = os.environ.get('NEO4J_DB_USER', "neo4j")
 graph_auth_pw = os.environ.get('NEO4J_DB_PW', "neo4j")
 graph_auth = (graph_auth_un, graph_auth_pw)
 
-host = "localhost"
-port = 7474
+host = os.environ.get('NEO4J_DB_HOST', "localhost")
+port = os.environ.get('NEO4J_DB_PORT', 7474)
+bolt_port = os.environ.get('NEO4J_DB_PORT_BOLT', 7687)
 graph_endpoint = 'http://{}:{}/db/data/transaction/commit'.format(host, port)
-bolt_endpoint = 'bolt://{}'.format(host)
+bolt_endpoint = 'bolt://{}:{}'.format(host, bolt_port)
 
 class GraphDb:
 	def __init__(self):

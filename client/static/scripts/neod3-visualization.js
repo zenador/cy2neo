@@ -1,4 +1,5 @@
 function Neod3Renderer() {
+    const DIFF_COLOUR_EDGES = false;
 
     var styleContents =
         "node {\
@@ -21,7 +22,7 @@ function Neod3Renderer() {
         }\n";
 
     var skip = ["id", "start", "end", "source", "target", "labels", "type", "selected", "properties"];
-    var prio_props = ["name", "title", "tag", "username", "lastname", "caption"];
+    var prio_props = ["eid", "name", "title", "tag", "username", "lastname", "caption"];
 
     var serializer = null;
 
@@ -40,9 +41,6 @@ function Neod3Renderer() {
     } else {
         stylingUrl += '.css';
     }
-
-    var existingStyles = {};
-    var currentColor = 1;
 
     function dummyFunc() {
     }
@@ -87,6 +85,14 @@ function Neod3Renderer() {
             }
             return style;
         }
+        function link_styles(links) {
+            var style = {};
+            for (var i = 0; i < links.length; i++) {
+                var selector = "relationship." + links[i]["type"];
+                style[selector] = "";
+            }
+            return style;
+        }
         function style_sheet(styles, styleContents) {
             function format(key) {
                 var item=styles[key];
@@ -100,7 +106,15 @@ function Neod3Renderer() {
             }
             return styleContents + Object.keys(styles).map(format).join("\n");
         }
-        function create_styles(styleCaptions,  styles) {
+        function style_sheet_links(styles, styleContents) {
+            function format(key) {
+                return key + " {color: " + styles[key].color + "; }"
+            }
+            return styleContents + Object.keys(styles).map(format).join("\n");
+        }
+        function create_styles(styleCaptions) {
+            var styles = {};
+            var currentColor = 1;
             var colors = neo.style.defaults.colors;
             //for (var selector in styleCaptions) {
             var sorted_keys = Object.keys(styleCaptions).sort();
@@ -112,6 +126,22 @@ function Neod3Renderer() {
                     var textColor = window.isInternetExplorer ? '#000000' : color['text-color-internal'];
                     var style = {selector:selector, caption:styleCaptions[selector], color:color.color, 
                          "border-color":color['border-color'], "text-color-internal":textColor,"text-color-external": textColor }
+                    styles[selector] = style;
+                }
+            }
+            return styles;
+        }
+        function create_styles_links(styleCaptions) {
+            var styles = {};
+            var currentColor = 0;
+            var colors = neo.style.defaults.colorsLinks;
+            var sorted_keys = Object.keys(styleCaptions).sort();
+            for (var key in sorted_keys) {
+                var selector = sorted_keys[key];
+                if (!(selector in styles)) {
+                    var color = colors[currentColor];
+                    currentColor = (currentColor + 1) % colors.length;
+                    var style = {color:color.color};
                     styles[selector] = style;
                 }
             }
@@ -194,6 +224,42 @@ function Neod3Renderer() {
 */
           return circles.exit().remove();
         }
+
+        function legendLinks(svg, styles, offset) {
+          var keys = Object.keys(styles).sort();
+          var circles = svg.selectAll('circle.legendLink').data(keys);
+          var r=20;
+          circles.enter().append('circle').classed('legendLink', true).attr({
+            cx: 2*r,
+            r : r
+          });
+          circles.attr({
+            cy: function(node) {
+              return (offset+keys.indexOf(node)+1)*2.2*r;
+            },
+            fill: function(node) {
+              return styles[node]['color'];
+            }
+          });
+          var text = svg.selectAll('text.legendLink').data(keys);
+          text.enter().append('text').classed('legendLink',true).attr({
+            'text-anchor': 'left',
+            'font-weight': 'bold',
+            'stroke-width' : '0',
+            'stroke-color' : 'black',
+            'fill' : 'black',
+            'x' : 3.2*r,
+            'font-size' : "12px"
+          });
+          text.text(function(link) {
+            var label = link;
+            return label ? label.substring(13) : "";
+          }).attr('y', function(link) {
+              return (offset+keys.indexOf(link)+1)*2.2*r+6;
+          });
+          return circles.exit().remove();
+        }
+
         function keyHandler() {
             if (d3.event.altKey || d3.event.shiftKey) {
                 enableZoomHandlers();
@@ -211,8 +277,13 @@ function Neod3Renderer() {
            //  links[i].properties = props(links[i]);
         }
         var nodeStyles = node_styles(nodes);
-        create_styles(nodeStyles, existingStyles);
+        var existingStyles = create_styles(nodeStyles);
         var styleSheet = style_sheet(existingStyles, styleContents);
+        if (DIFF_COLOUR_EDGES) {
+            var linkStyles = link_styles(links);
+            var existingStylesLinks = create_styles_links(linkStyles);
+            styleSheet = style_sheet_links(existingStylesLinks, styleSheet);
+        }
         var graphModel = neo.graphModel()
             .nodes(nodes)
             .relationships(links);
@@ -222,6 +293,8 @@ function Neod3Renderer() {
         var svg = d3.select("#" + id).append("svg");
         var renderer = svg.data([graphModel]);
         legend(svg,existingStyles);
+        if (DIFF_COLOUR_EDGES)
+            legendLinks(svg,existingStylesLinks,Object.keys(existingStyles).length);
         var zoomHandlers = {};
         var zoomBehavior = d3.behavior.zoom().on("zoom", applyZoom).scaleExtent([0.2, 8]);
 
