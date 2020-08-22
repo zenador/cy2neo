@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  db:
+    container_name: dockdockneo
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    # volumes:
+    #   - ./db/import:/import
+  go:
+    container_name: dockdockgo
+    build:
+      context: .
+      dockerfile: servgo/Dockerfile
+    ports:
+      - "8088:8088"
+    environment:
+      - NEO4J_DB_HOST=dockdockneo
+    depends_on:
+      - db
+  py:
+    container_name: dockdockpy
+    build:
+      context: .
+      dockerfile: servpy/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - NEO4J_DB_HOST=dockdockneo
+    depends_on:
+      - db

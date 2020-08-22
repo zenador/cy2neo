@@ -33,17 +33,26 @@ Tested on Neo4j Server 4.1.1.
 - integrate with socket.io
 - other minor UI fixes and debugging improvements
 
-You can choose to use either Python 3 (Flask) or Go for the backend.
+You can choose to use either Python 3 (Flask) or Go for the backend, with or without Docker.
 
 Instructions:
 ```
-# python
+# python without Docker
 cd servpy
 pip install -r requirements.txt
 python api.py
 
-# golang
+# golang without Docker
 cd servgo
 go mod download
 go build && ./servgo
+
+# Docker Compose (comment out Python/Go in the .yml file first)
+docker-compose up --build
+# to control individual services, e.g. you may need to do this if the python server auto-shutdown in the above command
+docker-compose start py
 ```
+
+Test URLs:
+http://localhost:8080/person/Andy if you manually import the provided demo csvs or use Docker
+http://localhost:8080/1/1 otherwise

@@ -1,0 +1,3 @@
+:START_ID(Person),:END_ID(Person),department
+Andy,Bernard,"R&D"
+Bernard,Chris,"N/A"
