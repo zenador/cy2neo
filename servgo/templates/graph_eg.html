@@ -1,0 +1,101 @@
+{{ template "base" . }}
+
+{{ define "pagecss" }}
+{{ template "graphs_css" . }}
+{{ template "tables_css" . }}
+<style type="text/css">
+ul[role="tablist"] {
+	height: 42px;
+	position: relative;
+}
+.tab-content {
+	height: calc(100% - 43px);
+	overflow: auto;
+}
+#table {
+	padding: 2em;
+}
+
+div.mainbar {
+	width: 100%;
+}
+</style>
+<style type="text/css">
+table.outer.n0 a {
+	color: inherit;
+}
+</style>
+{{ end }}
+
+{{ define "content" }}
+<!--
+	<div>
+	<input class="form-control" type="url" value="http://localhost:7474" id="neo4jUrl"/><br/>
+	<input class="form-control" type="text" size="8" value="neo4j" id="neo4jUser"/>
+	<input class="form-control" type="password" size="8" placeholder="password" value="test" id="neo4jPass"/><br/>
+	<textarea name="cypher" id="cypher" rows="4" cols="120" data-lang="cypher" class="code form-control">
+	MATCH (n)-[r]->(m)
+	RETURN n,r,m
+	LIMIT 50;
+	</textarea>
+	<a href="#" title="Execute" id="execute"><i class="fa fa-play-circle-o"></i></a>
+	</div>
+-->
+<div role="tabpanel" class="horzpanel mainbar">
+
+	<!-- Nav tabs -->
+	<ul class="nav nav-tabs" role="tablist">
+		<li role="presentation" class="active"><a href="#graph" aria-controls="home" role="tab" data-toggle="tab">Graph</a></li>
+		<li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab">Table</a></li>
+	</ul>
+
+	<!-- Tab panes -->
+	<div class="tab-content">
+		<div role="tabpanel" class="tab-pane active" id="graph">
+		</div>
+		<div role="tabpanel" class="tab-pane" id="table">
+			<div id="datatable"></div>
+		</div>
+	</div>
+
+</div>
+{{ end }}
+
+{{ define "pagescript" }}
+{{ template "graphs_js" . }}
+{{ template "tables_js" . }}
+<script type="text/javascript">
+function fadeBarMain() {
+	$("div.mainbar").css("opacity", 0.3);
+}
+function unfadeBarMain() {
+	$("div.mainbar").css("opacity", 1);
+}
+</script>
+<script src="/static/scripts/socket.io.slim.js"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	var params = {{.params}};
+	var neod3 = new Neod3Renderer();
+
+	function load_graph() {
+		fadeBarMain();
+		callGraphQuery("/get_graph", params, neod3, "graph", "datatable");
+	}
+
+	load_graph();
+
+	var socket = io.connect('http://' + document.domain + ':' + location.port, { transports: ['websocket'] });
+	socket.on('connect', function() {
+		//socket.emit('my event', {data: "message"});
+		console.log("I'm connected!");
+	});
+	socket.on('updated', function(r) {
+		console.log(r.Info);
+		setTimeout(function() {
+			load_graph();
+		}, 1000);
+	});
+});
+</script>
+{{ end }}

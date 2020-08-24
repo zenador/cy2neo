@@ -1,0 +1,82 @@
+{{ define "tables_css" }}
+<!--<link rel="stylesheet" href="/static/styles/datatable.css">-->
+<link rel="stylesheet" href="/static/styles/datatables.min.css">
+<style type="text/css">
+table.outer {
+	display: block;
+	overflow: auto;
+	max-height: 80%;
+}
+table.outer > tbody > tr > td, table.outer > thead > tr > th {
+	padding: 0.5em 0.25em;
+}
+table.inner > tbody > tr > td:nth-child(2) {
+	min-width: 10em;
+	word-wrap: break-word;
+	word-break: break-all;
+}
+li.paginate_button a {
+	border: 0;
+}
+a:focus table, a:hover table {
+	color: #2a6496;
+}
+</style>
+{{ end }}
+
+{{ define "tables_js" }}
+<script type="text/javascript">
+	function genMiniTableList(list) {
+		var text = "<ul>";
+		$.each(list, function( index, value ) {
+			text += "<li>" + value + "</li>";
+		});
+		text += "</ul>";
+		return text;
+	}
+	function genMiniTableDict(dict, labels) {
+		var text = "";
+		var linkHeader = getLinkHeader(dict, labels)
+		text += linkHeader;
+		text += "<table class='inner'>";
+		for (var key in dict) {
+			text += "<tr>";
+			text += "<td>" + key + "</td><td>" + dict[key] + "</td>";
+			text += "</tr>";
+		}
+		text += "</table>";
+		if (linkHeader != "")
+			text += "</a>";
+		return text;
+	}
+
+	function genTable(dict, header, classes) {
+		var text = "<table class='outer "+classes+"'>";
+		text += "<thead><tr>";
+		$.each(header, function( index, value ) {
+			text += "<th>" + value + "</th>";
+		});
+		text += "</tr></thead>";
+		$.each(dict, function( index, value ) {
+			text += "<tr>";
+			$.each(header, function( index, key ) {
+			//for (var key in value) { if (value.hasOwnProperty(key)) {
+				var val = value[key];
+				text += "<td>";
+				if (val !== null && typeof val === 'object')
+					if ($.isArray(val))
+						text += genMiniTableList(val);
+					else
+						text += genMiniTableDict(val, [key]);
+				else
+					text += val;
+				text += "</td>";
+			//}}
+			});
+			text += "</tr>";
+		});
+		text += "</table>";
+		return text;
+	}
+</script>
+{{ end }}

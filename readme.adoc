@@ -18,7 +18,7 @@ I wrote most of it while flying from OSCON 2014 in Portland,OR to Chicago on my 
 
 === Fork
 
-.Converted into Flask app to add Python server, allowing users to browse Neo4j with preset queries and connection only:
+.Added a server component, allowing users to browse Neo4j with preset queries and connection only:
 - more secure
 - more convenient and user-friendly
 - easier to reuse code
@@ -33,8 +33,17 @@ Tested on Neo4j Server 4.1.1.
 - integrate with socket.io
 - other minor UI fixes and debugging improvements
 
+You can choose to use either Python 3 (Flask) or Go for the backend.
+
 Instructions:
 ```
+# python
+cd servpy
 pip install -r requirements.txt
 python api.py
+
+# golang
+cd servgo
+go mod download
+go build && ./servgo
 ```

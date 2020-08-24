@@ -1,0 +1,27 @@
+{{ define "base" }}
+<html>
+<head>
+<link rel="stylesheet" href="/static/styles/vendor.css"> <!-- bootstrap-->
+<!--<link rel="stylesheet" href="/static/styles/codemirror.css">
+<link rel="stylesheet" href="/static/styles/codemirror-neo.css">-->
+<link rel="stylesheet" href="/static/styles/sweet-alert.css">
+<title>Cy2NeoD3 - Tiny Neo4j Cypher Workbench</title>
+{{ block "pagecss" . }}
+{{ end }}
+</head>
+<body>
+{{ block "content" . }}
+{{ end }}
+
+<script src="/static/scripts/vendor.js"></script>
+<!--<script src="/static/scripts/codemirror.js"></script>
+<script src="/static/scripts/codemirror-cypher.js"></script>-->
+<script src="/static/scripts/sweet-alert.min.js"></script>
+<!--<script src="/static/scripts/jquery.dataTables.min.js"></script>-->
+<script src="/static/scripts/datatables.min.js"></script>
+<script src="/static/scripts/gen-table-links.js"></script>
+{{ block "pagescript" . }}
+{{ end }}
+</body>
+</html>
+{{ end }}
