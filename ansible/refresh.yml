@@ -1,0 +1,71 @@
+- hosts: cyneo
+  become_method: sudo
+  become: yes
+  strategy: debug
+  tasks:
+    - name: Stop go app for uninstall
+      command: supervisorctl stop go
+    - name: Stop Neo4j for uninstall
+      service: state=stopped name=neo4j enabled=true
+    - name: Uninstall Neo4j APT # Somehow need to do this to replace the data with fresh imports or the db won't be accessible
+      apt:
+        pkg: neo4j
+        state: absent
+        purge: yes
+        autoremove: yes
+    - block:
+      - name: Remove Neo4j lib folder
+        file:
+          path: /var/lib/neo4j
+          state: absent
+      - name: Remove Neo4j log folder
+        file:
+          path: /var/log/neo4j
+          state: absent
+      - name: Remove Neo4j config folder
+        file:
+          path: /etc/neo4j
+          state: absent
+      - name: Remove Neo4j run folder
+        file:
+          path: /var/run/neo4j
+          state: absent
+    - name: Install Neo4j APT
+      apt:
+        update_cache: yes
+        pkg: neo4j=1:4.1.3
+        state: present
+        # force: yes
+        # install_recommends: yes
+    - name: Run setup bash script
+      script: ../db/setup.sh
+      register: out
+    - debug: var=out.stdout_lines
+    - name: Stop Neo4j to import
+      service: state=stopped name=neo4j enabled=true
+    - name: Move apoc jar
+      command: mv /var/lib/neo4j/labs/apoc-4.1.0.3-core.jar /var/lib/neo4j/plugins/apoc-4.1.0.3-core.jar
+    - name: Copy import csvs
+      copy:
+        src: ../db/import/
+        dest: /home/ubuntu/import/
+    - name: Run import bash script
+      script: ../db/import.sh
+      register: out
+    - debug: var=out.stdout_lines
+    - name: Fix ownership of Neo4j database folder
+      file:
+        path: /var/lib/neo4j/data/databases/neo4j
+        owner: neo4j
+        group: neo4j
+        recurse: yes
+    - name: Start Neo4j to add indexes
+      service: state=started name=neo4j enabled=true
+    - name: Show current date/time
+      debug: msg="{{ lookup('pipe', 'date') }}"
+    - name: Run index bash script
+      script: ../db/index.sh
+      register: out
+    - debug: var=out.stdout_lines
+    - name: Resume go app
+      command: supervisorctl start go

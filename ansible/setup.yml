@@ -1,0 +1,85 @@
+- hosts: cyneo
+  become_method: sudo
+  become: yes
+  strategy: debug
+  tasks:
+  - name: Show hostname
+    debug: var=ansible_hostname
+  - name: Show ansible version
+    debug: var=ansible_version
+  - name: Check ansible version
+    fail: msg="This playbook requires Ansible 2.9 or greater."
+    when: ansible_version.full < '2.9'
+  - name: Install go
+    snap:
+      name: go
+      classic: yes
+  - block:
+    - name: Add openjdk repo
+      apt_repository:
+        repo: ppa:openjdk-r/ppa
+        state: present
+    - name: Install software-properties-common
+      apt:
+        pkg: software-properties-common
+    - name: Add Neo4j's official GPG key
+      apt_key:
+        url: https://debian.neo4j.com/neotechnology.gpg.key
+        state: present
+    - name: Add Neo4j repo
+      apt_repository:
+        repo: "deb https://debian.neo4j.com stable latest"
+        state: present
+        filename: "neo4j"
+  - block:
+    - name: Set timezone to UTC
+      timezone:
+        name: Etc/UTC
+    become: true
+    become_user: root
+  - block:
+    - name: Install supervisor
+      apt:
+        pkg: supervisor
+    - name: Copy supervisord program configuration
+      copy:
+        src: "files/visor.conf"
+        dest: "/etc/supervisor/conf.d/visor.conf"
+        owner: "{{ ansible_user }}"
+        mode: "u+rwx,go+r"
+    - name: Enable supervisord
+      command: systemctl enable supervisor
+    - name: Startup supervisord
+      # command: systemctl restart supervisor
+      systemd:
+        enabled: yes
+        state: started
+        name: supervisor
+    - name: Reread supervisord configuration
+      command: supervisorctl update
+    - name: Use supervisor to start up all our programs
+      command: supervisorctl start all
+    become: true
+    become_user: root
+  - block:
+    - name: Install nginx
+      apt:
+        pkg: nginx
+    - name: Update nginx reverse proxy config
+      copy:
+        src: files/nginx.conf
+        dest: /etc/nginx/sites-available/servgo
+    - name: Add this symlink 
+      file:
+        src: "/etc/nginx/sites-available/servgo"
+        dest: "/etc/nginx/sites-enabled/servgo"
+        state: link
+    - name: Remove default symlink
+      file:
+        path: "/etc/nginx/sites-enabled/default"
+        state: absent
+    - name: Restart nginx
+      service: 
+        name: nginx
+        state: restarted
+  - debug: msg="Successfully completed!"

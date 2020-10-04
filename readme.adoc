@@ -33,7 +33,7 @@ Tested on Neo4j Server 4.1.1.
 - integrate with socket.io
 - other minor UI fixes and debugging improvements
 
-You can choose to use either Python 3 (Flask) or Go for the backend, with or without Docker.
+You can choose to use either Python 3 (Flask) or Go for the backend, with or without Docker. You can also use Ansible to set up the server.
 
 Instructions:
 ```

@@ -1,0 +1,22 @@
+- hosts: cyneo
+  strategy: debug
+  tasks:
+  - name: Copy static files
+    copy:
+      src: ../client/static/
+      dest: /home/ubuntu/client/static/
+  - block:
+    - name: Copy go app
+      copy:
+        src: ../servgo/
+        dest: /home/ubuntu/servgo/
+    - name: Go install requirements
+      command: go mod download
+      args:
+        chdir: /home/ubuntu/servgo/
+    - name: Go build
+      command: go build -o servgo
+      args:
+        chdir: /home/ubuntu/servgo/
+  - name: Restart go app
+    command: supervisorctl restart go

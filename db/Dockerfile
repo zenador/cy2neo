@@ -29,7 +29,7 @@ COPY *.sh scripts/
 RUN \
 	bash ./scripts/setup.sh && \
 	bash ./scripts/import.sh && \
-	# bash ./scripts/index.sh && \
+	# bash ./scripts/index-wrapper.sh && \
 	bin/neo4j-admin dump --database=neo4j --to=/dbdata
 
 FROM neo
