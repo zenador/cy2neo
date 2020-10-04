@@ -563,7 +563,13 @@ neo.layout = (function() {
       var accelerateLayout, d3force, forceLayout, linkDistance;
       forceLayout = {};
       linkDistance = 60;
-      d3force = d3.layout.force().linkDistance(linkDistance).charge(-1000).gravity(0.3);
+      d3force = d3.forceSimulation()
+        .force("link", d3.forceLink().id(function(d,i) {
+          return i;
+        }).distance(linkDistance))
+        .force("charge", d3.forceManyBody().strength(-1000))
+        .on("tick", render);
+      /*
       accelerateLayout = function() {
         var d3Tick, maxAnimationFramesPerSecond, maxComputeTime, maxStepsPerTick, now;
         maxStepsPerTick = 100;
@@ -592,6 +598,7 @@ neo.layout = (function() {
         })(this);
       };
       accelerateLayout();
+      */
       forceLayout.update = function(graph, size) {
         var center, nodes, radius, relationships;
         nodes = graph.nodes();
@@ -602,18 +609,41 @@ neo.layout = (function() {
           y: size[1] / 2
         };
         neo.utils.circularLayout(nodes, center, radius);
-        return d3force.nodes(nodes).links(relationships).size(size).start();
+        d3force = d3force
+          .force("x", d3.forceX().x(center.x).strength(0.3))
+          .force("y", d3.forceY().y(center.y).strength(0.3));
+        d3force.nodes(nodes).force('link').links(relationships);
+        d3force.stop();
+        while(d3force.alpha() >= d3force.alphaMin()) {
+          d3force.tick();
+        }
+        d3force.restart();
       };
       forceLayout.drag = function(simulation) {
         function dragstarted(d) {
-          d3.event.sourceEvent.stopPropagation();
+          if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+          d.fx = d.x;
+          d.fy = d.y;
         }
+
         function dragged(d) {
-          d3.select(this).attr("x", d.x = d3.event.x).attr("y", d.y = d3.event.y);
+          d.fx = d3.event.x;
+          d.fy = d3.event.y;
         }
-        return simulation.drag()
-          .on("dragstart", dragstarted)
-          .on("drag", dragged);
+
+        function dragended(d) {
+          if (!d3.event.active) simulation.alphaTarget(0);
+          // allow sticky nodes
+          // d.fx = null;
+          // d.fy = null;
+
+          triggerMouseup();
+        }
+
+        return d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended);
       }(d3force);
       return forceLayout;
     };
@@ -1257,7 +1287,7 @@ neo.viz = function(el, graph, layout, style) {
       } catch (_error) {}
     })();
     layers = el.selectAll("g.layer").data(["relationships", "nodes"]);
-    layers.enter().append("g").attr("class", function(d) {
+    layers = layers.enter().append("g").merge(layers).attr("class", function(d) {
       return "layer " + d;
     });
     nodes = graph.nodes();
@@ -1270,7 +1300,7 @@ neo.viz = function(el, graph, layout, style) {
     relationshipGroups = el.select("g.layer.relationships").selectAll("g.relationship").data(relationships, function(d) {
       return d.id;
     });
-    relationshipGroups.enter().append("g").attr("class", "relationship").on("click", onRelationshipClick);
+    relationshipGroups = relationshipGroups.enter().append("g").attr("class", "relationship").on("click", onRelationshipClick).merge(relationshipGroups);
     geometry.onGraphChange(graph);
     _ref = neo.renderers.relationship;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -1281,7 +1311,11 @@ neo.viz = function(el, graph, layout, style) {
     nodeGroups = el.select("g.layer.nodes").selectAll("g.node").data(nodes, function(d) {
       return d.id;
     });
-    nodeGroups.enter().append("g").attr("class", "node").call(force.drag).call(clickHandler);
+    var releasenode = function(d) {
+      d.fx = null;
+      d.fy = null;
+    }
+    nodeGroups = nodeGroups.enter().append("g").attr("class", "node").on('dblclick', releasenode).call(clickHandler).call(force.drag).merge(nodeGroups);
     _ref1 = neo.renderers.node;
     for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
       renderer = _ref1[_j];
@@ -1450,7 +1484,7 @@ neo.utils.clickHandler = function() {
     last = void 0;
     wait = null;
     selection.on("mousedown", function() {
-      d3.event.target.__data__.fixed = true;
+      // d3.event.target.__data__.fixed = true;
       down = d3.mouse(document.body);
       return last = +new Date();
     });
@@ -1461,7 +1495,7 @@ neo.utils.clickHandler = function() {
         if (wait) {
           window.clearTimeout(wait);
           wait = null;
-          d3.event.target.__data__.fixed = false;
+          // d3.event.target.__data__.fixed = false;
           return event.dblclick(d3.event.target.__data__);
         } else {
           return wait = window.setTimeout((function(e) {
@@ -1475,7 +1509,11 @@ neo.utils.clickHandler = function() {
     });
   };
   event = d3.dispatch("click", "dblclick");
-  return d3.rebind(cc, event, "on");
+  cc.on = function() {
+    var value = event.on.apply(event, arguments);
+    return value === event ? cc : value;
+  };
+  return cc;
 };
 
 
@@ -1485,7 +1523,7 @@ neo.utils.measureText = (function() {
   measureUsingCanvas = function(text, font) {
     var canvas, canvasSelection, context;
     canvasSelection = d3.select('canvas#textMeasurementCanvas').data([this]);
-    canvasSelection.enter().append('canvas').attr('id', 'textMeasurementCanvas').style('display', 'none');
+    canvasSelection = canvasSelection.enter().append('canvas').attr('id', 'textMeasurementCanvas').style('display', 'none').merge(canvasSelection);
     canvas = canvasSelection.node();
     context = canvas.getContext('2d');
     context.font = font;
@@ -1562,15 +1600,15 @@ function getEid(entity) {
   noop = function() {};
   nodeOutline = new neo.Renderer({
     onGraphChange: function(selection, viz) {
-      var circles;
-      circles = selection.selectAll('circle.outline').data(function(node) {
+      var circles = selection.selectAll('circle.outline').data(function(node) {
         return [node];
       });
-      circles.enter().append('circle').classed('outline', true).attr({
+      circles = circles.enter().append('circle').classed('outline', true).attrs({
         cx: 0,
         cy: 0
-      });
-      circles.attr({
+      })
+      .merge(circles)
+      .attrs({
         class: function(node) {
           return "outline ntype-" + node.labels[0];
         },
@@ -1600,16 +1638,16 @@ function getEid(entity) {
   });
   nodeCaption = new neo.Renderer({
     onGraphChange: function(selection, viz) {
-      var text;
-      text = selection.selectAll('text').data(function(node) {
+      var text = selection.selectAll('text').data(function(node) {
         return node.caption;
       });
-      text.enter().append('text').attr({
+      text = text.enter().append('text').attrs({
         'text-anchor': 'middle',
         'stroke': '#FFFFFF',
         'stroke-width' : '0'
-      });
-      text.text(function(line) {
+      })
+      .merge(text)
+      .text(function(line) {
         return line.text;
       }).attr('class', function(line) {
         return "ntype-" + line.node.labels[0];
@@ -1630,22 +1668,22 @@ function getEid(entity) {
   });
   nodeOverlay = new neo.Renderer({
     onGraphChange: function(selection) {
-      var circles;
-      circles = selection.selectAll('circle.overlay').data(function(node) {
+      var circles = selection.selectAll('circle.overlay').data(function(node) {
         if (node.selected) {
           return [node];
         } else {
           return [];
         }
       });
-      circles.enter().insert('circle', '.outline').classed('ring', true).classed('overlay', true).attr({
+      circles = circles.enter().insert('circle', '.outline').classed('ring', true).classed('overlay', true).attrs({
         cx: 0,
         cy: 0,
         fill: '#f5F6F6',
         stroke: 'rgba(151, 151, 151, 0.2)',
         'stroke-width': '3px'
-      });
-      circles.attr({
+      })
+      .merge(circles)
+      .attrs({
         r: function(node) {
           return node.radius + 6;
         }
@@ -1656,12 +1694,12 @@ function getEid(entity) {
   });
   arrowPath = new neo.Renderer({
     onGraphChange: function(selection, viz) {
-      var paths;
-      paths = selection.selectAll('path').data(function(rel) {
+      var paths = selection.selectAll('path').data(function(rel) {
         return [rel];
       });
-      paths.enter().append('path');
-      paths.attr('class', function(rel) {
+      paths = paths.enter().append('path')
+      .merge(paths)
+      .attr('class', function(rel) {
         return "rtype-" + rel.type;
       }).attr('fill', function(rel) {
         return viz.style.forRelationship(rel).get('color');
@@ -1678,14 +1716,14 @@ function getEid(entity) {
   });
   relationshipType = new neo.Renderer({
     onGraphChange: function(selection, viz) {
-      var texts;
-      texts = selection.selectAll("text").data(function(rel) {
+      var texts = selection.selectAll("text").data(function(rel) {
         return [rel];
       });
-      texts.enter().append("text").attr({
+      texts = texts.enter().append("text").attrs({
         "text-anchor": "middle"
-      });
-      texts.attr('class', function(rel) {
+      })
+      .merge(texts)
+      .attr('class', function(rel) {
         return "rtype-" + rel.type;
       }).attr('font-size', function(rel) {
         return viz.style.forRelationship(rel).get('font-size');
@@ -1713,8 +1751,8 @@ function getEid(entity) {
         return [rel];
       });
       band = 20;
-      rects.enter().append('rect').classed('overlay', true).attr('fill', 'yellow').attr('x', 0).attr('y', -band / 2).attr('height', band);
-      rects.attr('opacity', function(rel) {
+      rects = rects.enter().append('rect').classed('overlay', true).attr('fill', 'yellow').attr('x', 0).attr('y', -band / 2).attr('height', band).merge(rects)
+      .attr('opacity', function(rel) {
         if (rel.selected) {
           return 0.3;
         } else {
@@ -1748,3 +1786,12 @@ function getEid(entity) {
 })();
 
 }());
+
+function triggerMouseup() {
+  // since d3v4 zoom/drag stops propagation of all consumed events, need to manually trigger this for the mouseup listener to work 
+  var e = $.Event('mouseup');
+  e.pageX = d3.event.sourceEvent.pageX;
+  e.pageY = d3.event.sourceEvent.pageY;
+  e.which = d3.event.sourceEvent.which;
+  $(d3.event.sourceEvent.target).trigger(e);
+}

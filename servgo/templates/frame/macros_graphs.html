@@ -129,6 +129,11 @@ function executeGraphQuery(endpoint, params, cb) {
 
 				$(popoverSelector).on('mousedown', function (e) {
 					var downPos = [e.pageX, e.pageY];
+					// if ($(e.target).is("rect[data-toggle='popover']")) {
+					// 	// allow click to trigger popover on mouseup instead of being consumed by zoom event. however this doesn't allow panning on the relationship
+					// 	// e.stopPropagation();
+					// 	e.stopImmediatePropagation();
+					// }
 					$(popoverSelector).on('mouseup', function handler(e) {
 						var upPos = [e.pageX, e.pageY];
 						if (downPos[0] == upPos[0] && downPos[1] == upPos[1]) {

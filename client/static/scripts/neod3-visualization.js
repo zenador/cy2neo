@@ -152,8 +152,8 @@ function Neod3Renderer() {
         function applyZoom() {
             // if (d3.event.sourceEvent.target.tagName == "circle")
             //     return;
-            renderer.select(".nodes").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
-            renderer.select(".relationships").attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+            renderer.select(".nodes").attr("transform", d3.event.transform);
+            renderer.select(".relationships").attr("transform", d3.event.transform);
             $('[data-toggle=popover]').popover('hide');
         }
 
@@ -181,11 +181,12 @@ function Neod3Renderer() {
           var keys = Object.keys(styles).sort();
           var circles = svg.selectAll('circle.legend').data(keys);
           var r=20;
-          circles.enter().append('circle').classed('legend', true).attr({
+          circles = circles.enter().append('circle').classed('legend', true).attrs({
             cx: 2*r,
             r : r
-          });
-          circles.attr({
+          })
+          .merge(circles)
+          .attrs({
             class: function(node) {
               return "legend " + node.replace(/node\./g, 'ntype-');
             },
@@ -203,7 +204,7 @@ function Neod3Renderer() {
             }
           });
           var text = svg.selectAll('text.legend').data(keys);
-          text.enter().append('text').classed('legend',true).attr({
+          text = text.enter().append('text').classed('legend',true).attrs({
             'text-anchor': 'left',
             'font-weight': 'bold',
             'stroke-width' : '0',
@@ -211,8 +212,9 @@ function Neod3Renderer() {
             'fill' : 'black',
             'x' : 3.2*r,
             'font-size' : "12px"
-          });
-          text.text(function(node) {
+          })
+          .merge(text)
+          .text(function(node) {
             var label = styles[node].selector;
             return label ? label.substring(5) : "";
           }).attr('y', function(node) {
@@ -234,10 +236,11 @@ function Neod3Renderer() {
           var arrows = svg.selectAll('path.legendLink').data(keys);
           var r=20;
           var shaftRadius=1, headRadius=4, shaftLength=26, arrowLength=34;
-          arrows.enter().append('path').classed('legendLink', true).attr({
+          arrows = arrows.enter().append('path').classed('legendLink', true).attrs({
             d: ['M', 0, shaftRadius, 'L', shaftLength, shaftRadius, 'L', shaftLength, headRadius, 'L', arrowLength, 0, 'L', shaftLength, -headRadius, 'L', shaftLength, -shaftRadius, 'L', 0, -shaftRadius, 'Z'].join(' '),
-          });
-          arrows.attr({
+          })
+          .merge(arrows)
+          .attrs({
             class: function(link) {
               return "legendLink " + link.replace(/relationship\./g, 'rtype-');
             },
@@ -251,7 +254,7 @@ function Neod3Renderer() {
             }
           });
           var text = svg.selectAll('text.legendLink').data(keys);
-          text.enter().append('text').classed('legendLink',true).attr({
+          text = text.enter().append('text').classed('legendLink',true).attrs({
             'text-anchor': 'left',
             'font-weight': 'bold',
             'stroke-width' : '0',
@@ -259,8 +262,9 @@ function Neod3Renderer() {
             'fill' : 'black',
             'x' : 3.2*r,
             'font-size' : "12px"
-          });
-          text.text(function(link) {
+          })
+          .merge(text)
+          .text(function(link) {
             var label = link;
             return label ? label.substring(13) : "";
           }).attr('y', function(link) {
@@ -443,7 +447,17 @@ function Neod3Renderer() {
         if (DIFF_COLOUR_EDGES)
             legendLinks(svg,existingStylesLinks,Object.keys(existingStyles).length);
         var zoomHandlers = {};
-        var zoomBehavior = d3.behavior.zoom().on("zoom", applyZoom).scaleExtent([0.2, 8]);
+        /*
+        function zoomFilter() {
+            // allow click to trigger popover for relationship on mouseup instead of being consumed by zoom event. however this doesn't allow panning on the relationship
+            var event = d3.event;
+            var defaultFilter = (!event.ctrlKey || event.type === 'wheel') && !event.button; // from d3 source
+            var myFilter = !(event.type === 'mousedown' && $(event.target).is("rect[data-toggle='popover']"));
+            return defaultFilter && myFilter;
+        }
+        */
+        var zoomBehavior = d3.zoom().on("zoom", applyZoom).on("end", triggerMouseup).scaleExtent([0.2, 8]);
+
 
         renderer.call(graphView);
         renderer.call(zoomBehavior).on("dblclick.zoom", null);
