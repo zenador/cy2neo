@@ -149,11 +149,11 @@ function Neod3Renderer() {
             return styles;
         }
 
-        function applyZoom() {
-            // if (d3.event.sourceEvent.target.tagName == "circle")
+        function applyZoom(event) {
+            // if (event.sourceEvent.target.tagName == "circle")
             //     return;
-            renderer.select(".nodes").attr("transform", d3.event.transform);
-            renderer.select(".relationships").attr("transform", d3.event.transform);
+            renderer.select(".nodes").attr("transform", event.transform);
+            renderer.select(".relationships").attr("transform", event.transform);
             $('[data-toggle=popover]').popover('hide');
         }
 
@@ -273,8 +273,8 @@ function Neod3Renderer() {
           return arrows.exit().remove();
         }
 /*
-        function keyHandler() {
-            if (d3.event.altKey || d3.event.shiftKey) {
+        function keyHandler(event) {
+            if (event.altKey || event.shiftKey) {
                 enableZoomHandlers();
             }
             else {
@@ -448,9 +448,8 @@ function Neod3Renderer() {
             legendLinks(svg,existingStylesLinks,Object.keys(existingStyles).length);
         var zoomHandlers = {};
         /*
-        function zoomFilter() {
+        function zoomFilter(event) {
             // allow click to trigger popover for relationship on mouseup instead of being consumed by zoom event. however this doesn't allow panning on the relationship
-            var event = d3.event;
             var defaultFilter = (!event.ctrlKey || event.type === 'wheel') && !event.button; // from d3 source
             var myFilter = !(event.type === 'mousedown' && $(event.target).is("rect[data-toggle='popover']"));
             return defaultFilter && myFilter;

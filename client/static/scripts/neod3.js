@@ -620,24 +620,24 @@ neo.layout = (function() {
         d3force.restart();
       };
       forceLayout.drag = function(simulation) {
-        function dragstarted(d) {
-          if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        function dragstarted(event, d) {
+          if (!event.active) simulation.alphaTarget(0.3).restart();
           d.fx = d.x;
           d.fy = d.y;
         }
 
-        function dragged(d) {
-          d.fx = d3.event.x;
-          d.fy = d3.event.y;
+        function dragged(event, d) {
+          d.fx = event.x;
+          d.fy = event.y;
         }
 
-        function dragended(d) {
-          if (!d3.event.active) simulation.alphaTarget(0);
+        function dragended(event, d) {
+          if (!event.active) simulation.alphaTarget(0);
           // allow sticky nodes
           // d.fx = null;
           // d.fy = null;
 
-          triggerMouseup();
+          triggerMouseup(event);
         }
 
         return d3.drag()
@@ -1311,7 +1311,7 @@ neo.viz = function(el, graph, layout, style) {
     nodeGroups = el.select("g.layer.nodes").selectAll("g.node").data(nodes, function(d) {
       return d.id;
     });
-    var releasenode = function(d) {
+    var releasenode = function(event, d) {
       d.fx = null;
       d.fy = null;
     }
@@ -1333,7 +1333,7 @@ neo.viz = function(el, graph, layout, style) {
       function isConnected(a, b) {
         return linkDict[a.id + "," + b.id] || linkDict[b.id + "," + a.id] || a.id == b.id;
       }
-      nodeGroups.on('mouseover', function(d) {
+      nodeGroups.on('mouseover', function(event, d) {
         if (!(localStorage['enableHoverForHighlights'] === "true") && !(window.event.ctrlKey || window.event.altKey))
           return;
         nodeGroups.attr('class', function(v) {
@@ -1342,13 +1342,13 @@ neo.viz = function(el, graph, layout, style) {
         relationshipGroups.attr('class', function(l) {
           return existingLinkClass + (l.source === d || l.target === d ? "focuson": "focusoff");
         });
-      }).on('mouseout', function(d) {
+      }).on('mouseout', function(event, d) {
         nodeGroups.classed("focuson focusoff", false);
         relationshipGroups.classed("focuson focusoff", false);
       });
     }
     if (HOVER_EDGE_HIGHLIGHT) {
-      relationshipGroups.on('mouseover', function(d) {
+      relationshipGroups.on('mouseover', function(event, d) {
         if (!(localStorage['enableHoverForHighlights'] === "true") && !(window.event.ctrlKey || window.event.altKey))
           return;
         nodeGroups.attr('class', function(v) {
@@ -1357,7 +1357,7 @@ neo.viz = function(el, graph, layout, style) {
         relationshipGroups.attr('class', function(l) {
           return existingLinkClass + (l === d ? "focuson" : "focusoff");
         });
-      }).on('mouseout', function(d) {
+      }).on('mouseout', function(event, d) {
         nodeGroups.classed("focuson focusoff", false);
         relationshipGroups.classed("focuson focusoff", false);
       });
@@ -1483,27 +1483,25 @@ neo.utils.clickHandler = function() {
     tolerance = 5;
     last = void 0;
     wait = null;
-    selection.on("mousedown", function() {
-      // d3.event.target.__data__.fixed = true;
-      down = d3.mouse(document.body);
+    selection.on("mousedown", function(e) {
+      down = d3.pointer(document.body);
       return last = +new Date();
     });
-    return selection.on("mouseup", function() {
-      if (dist(down, d3.mouse(document.body)) > tolerance) {
+    return selection.on("mouseup", function(e) {
+      if (dist(down, d3.pointer(document.body)) > tolerance) {
 
       } else {
         if (wait) {
           window.clearTimeout(wait);
           wait = null;
-          // d3.event.target.__data__.fixed = false;
-          return event.dblclick(d3.event.target.__data__);
+          return event.dblclick(e.target.__data__);
         } else {
           return wait = window.setTimeout((function(e) {
             return function() {
               event.click(e.target.__data__);
               return wait = null;
             };
-          })(d3.event), 250);
+          })(e), 250);
         }
       }
     });
@@ -1787,11 +1785,11 @@ function getEid(entity) {
 
 }());
 
-function triggerMouseup() {
+function triggerMouseup(event) {
   // since d3v4 zoom/drag stops propagation of all consumed events, need to manually trigger this for the mouseup listener to work 
   var e = $.Event('mouseup');
-  e.pageX = d3.event.sourceEvent.pageX;
-  e.pageY = d3.event.sourceEvent.pageY;
-  e.which = d3.event.sourceEvent.which;
-  $(d3.event.sourceEvent.target).trigger(e);
+  e.pageX = event.sourceEvent.pageX;
+  e.pageY = event.sourceEvent.pageY;
+  e.which = event.sourceEvent.which;
+  $(event.sourceEvent.target).trigger(e);
 }
