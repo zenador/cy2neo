@@ -34,9 +34,9 @@ function Cy2NeoD3(config, graphId, tableId, sourceId, execId, urlSource, renderG
 						if (err) {
 							console.log(err);
 							if (err.length > 0) {
-								sweetAlert("Cypher error", err[0].code + "\n" + err[0].message, "error");
+								Swal.fire("Cypher error", err[0].code + "\n" + err[0].message, "error");
 							} else {
-								sweetAlert("Ajax " + err.statusText, "Status " + err.status + ": " + err.state(), "error");
+								Swal.fire("Ajax " + err.statusText, "Status " + err.status + ": " + err.state(), "error");
 							}
 						}
 					}
@@ -45,7 +45,7 @@ function Cy2NeoD3(config, graphId, tableId, sourceId, execId, urlSource, renderG
 			});
 		} catch(e) {
 			console.log(e);
-			sweetAlert("Catched error", e, "error");
+			Swal.fire("Catched error", e, "error");
 		}
 		return false;
 	});

@@ -763,7 +763,15 @@ neo.style = (function() {
     ],
     colorsLinks: [
       {
+        color: '#43C04B'
+      }, {
         color: '#4356C0'
+      }, {
+        color: '#7443C0'
+      }, {
+        color: '#C04343'
+      }, {
+        color: '#ECFF00'
       }, {
         color: '#D4D6D7'
       }
@@ -1244,6 +1252,11 @@ neo.viz = function(el, graph, layout, style) {
     });
     nodes = graph.nodes();
     relationships = graph.relationships();
+
+    console.log("There are "+nodes.length+" nodes and "+relationships.length+" relationships.");
+    $("input[name=record_count_node]").val(nodes.length);
+    $("input[name=record_count_edge]").val(relationships.length);
+    
     relationshipGroups = el.select("g.layer.relationships").selectAll("g.relationship").data(relationships, function(d) {
       return d.id;
     });
@@ -1437,6 +1450,7 @@ neo.utils.clickHandler = function() {
         if (wait) {
           window.clearTimeout(wait);
           wait = null;
+          d3.event.target.__data__.fixed = false;
           return event.dblclick(d3.event.target.__data__);
         } else {
           return wait = window.setTimeout((function(e) {
@@ -1500,14 +1514,17 @@ function genPopover(entity) {
   if (Object.keys(pm).length == 0)
     return null;
   var text = "";
-  var linkHeader;
+  var linkHeader, title;
   if (entity instanceof neo.models.Node) {
-    linkHeader = getLinkHeader(pm, entity.labels);
+    linkHeader = getLinkHeader(pm, entity.labels, entity.id);
+    title = entity.labels.join(", ");
   } else if (entity instanceof neo.models.Relationship) {
-    linkHeader = getLinkHeaderRel(pm, entity.type);
+    linkHeader = getLinkHeaderRel(pm, entity.type, entity.source, entity.target);
+    title = entity.type;
   }
   text += linkHeader;
   text += "<table>";
+  text += '<tr><th colspan="2">'+title+'</th></tr>';
   for (var key in pm) {
     if (pm.hasOwnProperty(key)) {
       text += "<tr><td>"+key+"</td><td>"+pm[key]+"</td></tr>";

@@ -39,6 +39,9 @@
 	max-height: 400px;
 	overflow: auto;
 }
+.popover-body {
+	color: white;
+}
 </style>
 {{ end }}
 
@@ -49,6 +52,27 @@
 <script src="/static/scripts/cy2neod3.js"></script> -->
 <script src="/static/scripts/cypher.datatable.js"></script>
 <script type="text/javascript">
+var popoverSelector = 'circle[data-toggle="popover"], rect[data-toggle="popover"]';
+
+function popoverClick() {
+	$(popoverSelector).popover('dispose');
+	// don't use built-in click trigger because that doesn't work well with drag and drop
+	$(popoverSelector).popover({
+		"trigger": "manual",
+		"container": "body",
+		"html": true,
+	});
+}
+
+function popoverHover() {
+	$(popoverSelector).popover('dispose');
+	$(popoverSelector).popover({
+		"trigger": "hover",
+		"container": "body",
+		"html": true,
+	});
+}
+
 function executeGraphQuery(endpoint, params, cb) {
 	$.ajax(endpoint, {
 		type: "POST",
@@ -62,6 +86,7 @@ function executeGraphQuery(endpoint, params, cb) {
 				cb(res.errors);
 			} else {
 				console.log(res.query);
+    			$("input[name=record_query]").val(res.query);
 				var cols = res.results[0].columns;
 				var rows = res.results[0].data.map(function(row) {
 					var r = {};
@@ -96,16 +121,15 @@ function executeGraphQuery(endpoint, params, cb) {
 						}
 					));
 				});
+
+				console.log("There are "+rows.length+" rows.");
+				$("input[name=record_count_row]").val(rows.length);
+
 				cb(null,{table:rows,graph:{nodes:nodes, links:rels},labels:labels,eid:res.eid});
 
-				$('[data-toggle="popover"]').popover({
-					"trigger": "manual",
-					"container": "body",
-					"html": true,
-				});
-				$('[data-toggle=popover]').on('mousedown', function (e) {
+				$(popoverSelector).on('mousedown', function (e) {
 					var downPos = [e.pageX, e.pageY];
-					$('[data-toggle=popover]').on('mouseup', function handler(e) {
+					$(popoverSelector).on('mouseup', function handler(e) {
 						var upPos = [e.pageX, e.pageY];
 						if (downPos[0] == upPos[0] && downPos[1] == upPos[1]) {
 							//click
@@ -113,12 +137,25 @@ function executeGraphQuery(endpoint, params, cb) {
 								$(this).popover('toggle');
 						} else {
 							//drag
-							if ($(e.target).data('bs.popover').tip().hasClass('in')) {
+							// if ($(e.target).data('bs.popover').tip().hasClass('in')) {
 								$(this).popover('hide');
-							}
+							// }
 						}
-						$('[data-toggle=popover]').off('mouseup', handler);
+						$(popoverSelector).off('mouseup', handler);
 					});
+				});
+				popoverClick();
+				var isKeyDown = false;
+				$("body").keydown(function(e) {
+					if (!isKeyDown && (e.which == 16 || e.which == 18)) { // shift or alt
+						isKeyDown = true;
+						popoverHover();
+					}
+				}).keyup(function(e) {
+					if (e.which == 16 || e.which == 18) { // shift or alt
+						isKeyDown = false;
+						popoverClick();
+					}
 				});
 
 				unfadeBarMain();
@@ -144,9 +181,9 @@ callGraphQuery = function(endpoint, params, neod3, graphId, tableId) {
 			if (err) {
 				console.log(err);
 				if (err.length > 0) {
-					sweetAlert("Cypher error", err[0].code + "\n" + err[0].message, "error");
+					Swal.fire("Cypher error", err[0].code + "\n" + err[0].message, "error");
 				} else {
-					sweetAlert("Ajax " + err.statusText, "Status " + err.status + ": " + err.state(), "error");
+					Swal.fire("Ajax " + err.statusText, "Status " + err.status + ": " + err.state(), "error");
 				}
 			}
 		}

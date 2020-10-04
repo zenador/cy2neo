@@ -1,4 +1,4 @@
-function getLinkHeader(properties, labels) {
+function getLinkHeader(properties, labels, id) {
 	var text = ''; // keep this for no links
 	text = '<a href="/table/1">'; // just to show it can link somewhere
 	/*
@@ -10,7 +10,7 @@ function getLinkHeader(properties, labels) {
 	return text;
 }
 
-function getLinkHeaderRel(properties, label) {
+function getLinkHeaderRel(properties, label, source, target) {
 	var text = ''; // keep this for no links
 	text = '<a href="/table/1">'; // just to show it can link somewhere
 	/*
@@ -20,4 +20,16 @@ function getLinkHeaderRel(properties, label) {
 	}
 	*/
 	return text;
+}
+
+function copyTextToClipboard(text) {
+	var $temp = $("<textarea>");
+	$("body").append($temp);
+	$temp.val(text).select();
+	document.execCommand("copy");
+	$temp.remove();
+}
+
+function copyElementToClipboard(element) {
+	copyTextToClipboard($(element).val());
 }

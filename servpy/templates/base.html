@@ -1,9 +1,13 @@
 <html>
 <head>
-<link rel="stylesheet" href="/static/styles/vendor.css"> <!-- bootstrap-->
+<!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" integrity="sha384-X7L1bhgb36bF1iFvaqvhgpaGpayKM+vXNNYRlF89BFA5s3vi1qZ8EX9086RlZjy1" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@9.17.2/dist/sweetalert2.min.css" integrity="sha256-KpQHAI/AubL4JrO3VYskOgqSm+Z9nzrIqWB1dTOfCK4=" crossorigin="anonymous"> -->
+<link rel="stylesheet" href="/static/styles/bootstrap.min.css">
+<link rel="stylesheet" href="/static/styles/font-awesome.min.css">
+<link rel="stylesheet" href="/static/styles/sweetalert2.min.css">
 <!--<link rel="stylesheet" href="/static/styles/codemirror.css">
 <link rel="stylesheet" href="/static/styles/codemirror-neo.css">-->
-<link rel="stylesheet" href="/static/styles/sweet-alert.css">
 <title>Cy2NeoD3 - Tiny Neo4j Cypher Workbench</title>
 {% block pagecss %}
 {% endblock pagecss %}
@@ -12,10 +16,18 @@
 {% block content %}
 {% endblock content %}
 
-<script src="/static/scripts/vendor.js"></script>
+<!-- <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.17/d3.min.js" integrity="sha512-oJp0DdQuQQrRsKVly+Ww6fAN1GwJN7d1bi8UubpEbzDUh84WrJ2CFPBnT4LqBCcfqTcHR5OGXFFhaPe3g1/bzQ==" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9.17.2/dist/sweetalert2.min.js" integrity="sha256-sarARWr5nQBUzdR7qdQO0JHYeKx58u47nC+eIu6Yfx0=" crossorigin="anonymous"></script> -->
+<script src="/static/scripts/jquery.min.js"></script>
+<script src="/static/scripts/popper.min.js"></script>
+<script src="/static/scripts/bootstrap.min.js"></script>
+<script src="/static/scripts/d3.min.js"></script>
+<script src="/static/scripts/sweetalert2.min.js"></script>
 <!--<script src="/static/scripts/codemirror.js"></script>
 <script src="/static/scripts/codemirror-cypher.js"></script>-->
-<script src="/static/scripts/sweet-alert.min.js"></script>
 <!--<script src="/static/scripts/jquery.dataTables.min.js"></script>-->
 <script src="/static/scripts/datatables.min.js"></script>
 <script src="/static/scripts/gen-table-links.js"></script>

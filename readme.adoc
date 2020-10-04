@@ -26,13 +26,14 @@ I wrote most of it while flying from OSCON 2014 in Portland,OR to Chicago on my 
 Tested on Neo4j Server 4.1.1.
 
 .Also made some other changes:
-- allow clicking vertex or edge to show properties in a popup with hyperlinks
+- allow clicking or hovering on vertex or edge to show properties in a popup with hyperlinks
 - add a more detailed and searchable DataTables view on a separate page
 - new option to use separate colours for edges based on type and to hide edge captions
 - new option to highlight linked vertices and edges on hover
 - allow highlighting focus nodes based on user-defined entity id
+- add helpful tooltips
 - integrate with socket.io
-- other minor UI fixes and debugging improvements
+- other minor UI fixes and debugging improvements and library upgrades
 
 You can choose to use either Python 3 (Flask) or Go for the backend, with or without Docker. You can also use Ansible to set up the server.
 

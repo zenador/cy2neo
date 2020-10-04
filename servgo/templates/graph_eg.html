@@ -19,10 +19,16 @@ ul[role="tablist"] {
 div.mainbar {
 	width: 100%;
 }
-</style>
-<style type="text/css">
+
 table.outer.n0 a {
 	color: inherit;
+}
+table.tipstable, table.tipstable th, table.tipstable td {
+	border: 1px solid black;
+}
+
+li span.tipicon {
+	margin: 0 0.125em;
 }
 </style>
 {{ end }}
@@ -45,18 +51,27 @@ table.outer.n0 a {
 
 	<!-- Nav tabs -->
 	<ul class="nav nav-tabs" role="tablist">
-		<li role="presentation" class="active"><a href="#graph" aria-controls="home" role="tab" data-toggle="tab">Graph</a></li>
-		<li role="presentation"><a href="#table" aria-controls="table" role="tab" data-toggle="tab">Table</a></li>
+		<li class="nav-item"><a class="nav-link active" href="#graph" aria-controls="home" role="tab" data-toggle="tab" aria-selected="true">Graph</a></li>
+		<li class="nav-item"><a class="nav-link" href="#table" aria-controls="table" role="tab" data-toggle="tab" aria-selected="false">Table</a></li>
+		<li><span class="fa fa-info tipicon" id="helpicon" style="cursor: pointer; color: green;" data-toggle="popover" data-content="Click me for general tips"></span></li>
+		<li><span class="fa fa-spinner tipicon" id="loadicon" style="display: none; color: cyan;" data-toggle="popover" data-content="Graph is still loading, please wait"></span></li>
+		<li><span class="fa fa-check tipicon" id="doneicon" style="display: none; color: cyan;" data-toggle="popover" data-content="Graph has finished loading. If it is still empty, it means the query returned no results"></span></li>
+		<li><span class="fa fa-question-circle tipicon" id="noteicon" style="display: none; color: orange;" data-toggle="popover" data-content=""></span></li>
 	</ul>
 
 	<!-- Tab panes -->
 	<div class="tab-content">
-		<div role="tabpanel" class="tab-pane active" id="graph">
+		<div role="tabpanel" class="tab-pane active show fade" id="graph">
 		</div>
-		<div role="tabpanel" class="tab-pane" id="table">
+		<div role="tabpanel" class="tab-pane fade" id="table">
 			<div id="datatable"></div>
 		</div>
 	</div>
+
+	<input type="hidden" name="record_query" value="" />
+	<input type="hidden" name="record_count_row" value="" />
+	<input type="hidden" name="record_count_node" value="" />
+	<input type="hidden" name="record_count_edge" value="" />
 
 </div>
 {{ end }}
@@ -67,9 +82,15 @@ table.outer.n0 a {
 <script type="text/javascript">
 function fadeBarMain() {
 	$("div.mainbar").css("opacity", 0.3);
+	$("#loadicon").show();
 }
 function unfadeBarMain() {
 	$("div.mainbar").css("opacity", 1);
+	$("#loadicon").hide();
+	$("#doneicon").show();
+	var content = "<ul><li>Query: " + $("input[name=record_query]").val().replace(/(\r\n|\n|\r)/gm, "<br>") + "</li><li>Row count: " + $("input[name=record_count_row]").val() + "</li><li>Node count: " + $("input[name=record_count_node]").val() + "</li><li>Edge count: " + $("input[name=record_count_edge]").val() + "</li></ul>";
+	$("#noteicon").attr("data-content", content);
+	$("#noteicon").show();
 }
 </script>
 <script src="/static/scripts/socket.io.slim.js"></script>
@@ -95,6 +116,23 @@ $(document).ready(function() {
 		setTimeout(function() {
 			load_graph();
 		}, 1000);
+	});
+
+	$("span#helpicon").on("click", function() {
+		Swal.fire({
+			title: "Tip",
+			html: '<table class="tipstable"><tr><th>Action + Effect</th><th>While holding down this key</th></tr><tr><td>Scroll to zoom</td><td>Alt</td></tr><tr><td>Drag and drop to pan</td><td>Shift/Alt</td></tr><tr><td>Click on nodes/edges to toggle display of properties</td><td>N/A</td></tr><tr><td>Hover on nodes/edges to view properties</td><td>Shift/Alt</td></tr><!--<tr><td>Hover on nodes/edges to highlight only related nodes/edges</td><td>Control/Alt</td></tr>--></table>'
+		});
+	});
+
+	$("span#noteicon").on("click", function() {
+		copyElementToClipboard("input[name=record_query]");
+	});
+
+	$('span[data-toggle="popover"]').popover({
+		"trigger": "hover",
+		"container": "body",
+		"html": true,
 	});
 });
 </script>
