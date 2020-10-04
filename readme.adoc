@@ -29,6 +29,7 @@ Tested on Neo4j Server 4.1.1.
 - allow clicking vertex or edge to show properties in a popup with hyperlinks
 - add a more detailed and searchable DataTables view on a separate page
 - new option to use separate colours for edges based on type and to hide edge captions
+- new option to highlight linked vertices and edges on hover
 - allow highlighting focus nodes based on user-defined entity id
 - integrate with socket.io
 - other minor UI fixes and debugging improvements

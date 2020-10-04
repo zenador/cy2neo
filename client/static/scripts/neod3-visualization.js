@@ -11,6 +11,7 @@ function Neod3Renderer() {
           text-color-external: #000000;\
           caption: '{name}';\
           font-size: 12px;\
+          font-weight: bold;\
         }\
         relationship {\
           color: #4356C0;\

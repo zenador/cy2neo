@@ -2,6 +2,8 @@
 (function(){
 const MAX_STR_LEN = 30;
 const HIDE_REL_CAPTIONS = false;
+const HOVER_NODE_HIGHLIGHT = false;
+const HOVER_EDGE_HIGHLIGHT = false;
 
 var __hasProp = {}.hasOwnProperty;
 
@@ -1263,6 +1265,46 @@ neo.viz = function(el, graph, layout, style) {
       nodeGroups.call(renderer.onGraphChange, viz);
     }
     nodeGroups.exit().remove();
+
+    if (HOVER_NODE_HIGHLIGHT) {
+      var linkDict = {};
+      relationships.forEach(function(d) {
+        linkDict[d.source.id + "," + d.target.id] = 1;
+      });
+      function isConnected(a, b) {
+        return linkDict[a.id + "," + b.id] || linkDict[b.id + "," + a.id] || a.id == b.id;
+      }
+      var offOpacity = 0.2;
+      nodeGroups.on('mouseover', function(d) {
+        if (!(window.event.ctrlKey || window.event.altKey))
+          return;
+        nodeGroups.style('opacity', function(v) {
+          return isConnected(d, v) ? 1 : offOpacity;
+        });
+        relationshipGroups.style('opacity', function(l) {
+          return l.source === d || l.target === d ? 1 : offOpacity;
+        });
+      }).on('mouseout', function(d) {
+        nodeGroups.style('opacity', 1);
+        relationshipGroups.style('opacity', 1);
+      });
+    }
+    if (HOVER_EDGE_HIGHLIGHT) {
+      relationshipGroups.on('mouseover', function(d) {
+        if (!(window.event.ctrlKey || window.event.altKey))
+          return;
+        nodeGroups.style('opacity', function(v) {
+          return d.source === v || d.target === v ? 1 : offOpacity;
+        });
+        relationshipGroups.style('opacity', function(l) {
+          return l === d ? 1 : offOpacity;
+        });
+      }).on('mouseout', function(d) {
+        nodeGroups.style('opacity', 1);
+        relationshipGroups.style('opacity', 1);
+      });
+    }
+
     return force.update(graph, [width, height]);
   };
   clickHandler = neo.utils.clickHandler();
@@ -1533,7 +1575,6 @@ function getEid(entity) {
       });
       text.enter().append('text').attr({
         'text-anchor': 'middle',
-        'font-weight': 'bold',
         'stroke': '#FFFFFF',
         'stroke-width' : '0'
       });
@@ -1543,10 +1584,12 @@ function getEid(entity) {
         return line.baseline;
       }).attr('font-size', function(line) {
         return viz.style.forNode(line.node).get('font-size');
+      }).attr('font-weight', function(line) {
+        return viz.style.forNode(line.node).get('font-weight');
       }).attr('stroke', function(line) {
         return viz.style.forNode(line.node).get('color');
       }).attr('fill', function(line) {
-          return viz.style.forNode(line.node).get('text-color-internal');
+        return viz.style.forNode(line.node).get('text-color-internal');
       });
       return text.exit().remove();
     },
