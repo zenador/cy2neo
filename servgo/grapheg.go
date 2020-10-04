@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"regexp"
 
 	"github.com/gorilla/mux"
 )
@@ -47,6 +48,16 @@ func gAPI(w http.ResponseWriter, r *http.Request) {
 	}
 	var post Post
 	json.NewDecoder(r.Body).Decode(&post)
+
+	matched, _ := regexp.MatchString(`^\w+$`, post.QID)
+	if !matched {
+		post.QID = "invalid"
+	}
+
+	matched, _ = regexp.MatchString(`^[\w.-]+$`, post.EID)
+	if !matched {
+		post.EID = "invalid"
+	}
 
 	query := format(queries[post.QID], post)
 	log.Println(query)

@@ -1,5 +1,6 @@
 from json import dumps
 from flask import Response
+import re
 
 from misc.DbUtility import getGraph, pprintQuery
 from misc.Handler import Handler
@@ -34,6 +35,10 @@ class GWeb(Handler):
 class GApi(Handler):
 	def post(self):
 		params = self.request.json
+		if not re.search(r"^\w+$", params.get('query_id', "")):
+			params["query_id"] = "invalid"
+		if not re.search(r"^[\w.-]+$", params.get('entity_id', "")):
+			params["entity_id"] = "invalid"
 		query_id = params.get('query_id', "")
 		entity_id = params.get('entity_id', "")
 		query = queries.get(query_id, "").format(**params)

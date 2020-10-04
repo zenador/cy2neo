@@ -29,6 +29,19 @@ def addNeoTimeout(query, timeout, tail):
 	query = """CALL apoc.cypher.runTimeboxed("{}", null, {}) YIELD value RETURN {};""".format(query, timeout, ", ".join(["value.{name} as {name}".format(name=i) for i in tail]))
 	return query
 
+def addNeoAutoComplete(query, nodes, relTypes=[]):
+	newNodeStr = " + ".join(["collect(id("+node+"))" for node in nodes])
+	newRelTypesStr = "|".join(relTypes)
+	if newRelTypesStr:
+		newRelTypesStr = ":" + newRelTypesStr
+	return """CALL {""" + query + """}
+	//WITH (collect(distinct id(n1)) + collect(distinct id(n2))) as ids
+	WITH apoc.coll.toSet(""" + newNodeStr + """) as ids
+	MATCH (n)-[r""" + newRelTypesStr + """]->(m)
+	WHERE id(n) in ids
+	AND id(m) in ids
+	RETURN n,r,m"""
+
 def getGraph(query):
 	params = {
 		"statements": [{
