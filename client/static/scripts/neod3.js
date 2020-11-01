@@ -2,8 +2,8 @@
 (function(){
 const MAX_STR_LEN = 30;
 const HIDE_REL_CAPTIONS = false;
-const HOVER_NODE_HIGHLIGHT = false;
-const HOVER_EDGE_HIGHLIGHT = false;
+const HOVER_NODE_HIGHLIGHT = true;
+const HOVER_EDGE_HIGHLIGHT = true;
 
 var __hasProp = {}.hasOwnProperty;
 
@@ -604,7 +604,17 @@ neo.layout = (function() {
         neo.utils.circularLayout(nodes, center, radius);
         return d3force.nodes(nodes).links(relationships).size(size).start();
       };
-      forceLayout.drag = d3force.drag;
+      forceLayout.drag = function(simulation) {
+        function dragstarted(d) {
+          d3.event.sourceEvent.stopPropagation();
+        }
+        function dragged(d) {
+          d3.select(this).attr("x", d.x = d3.event.x).attr("y", d.y = d3.event.y);
+        }
+        return simulation.drag()
+          .on("dragstart", dragstarted)
+          .on("drag", dragged);
+      }(d3force);
       return forceLayout;
     };
     return _force;
@@ -1290,7 +1300,7 @@ neo.viz = function(el, graph, layout, style) {
         return linkDict[a.id + "," + b.id] || linkDict[b.id + "," + a.id] || a.id == b.id;
       }
       nodeGroups.on('mouseover', function(d) {
-        if (!(window.event.ctrlKey || window.event.altKey))
+        if (!(localStorage['enableHoverForHighlights'] === "true") && !(window.event.ctrlKey || window.event.altKey))
           return;
         nodeGroups.attr('class', function(v) {
           return existingNodeClass + (isConnected(d, v) ? "focuson" : "focusoff");
@@ -1305,7 +1315,7 @@ neo.viz = function(el, graph, layout, style) {
     }
     if (HOVER_EDGE_HIGHLIGHT) {
       relationshipGroups.on('mouseover', function(d) {
-        if (!(window.event.ctrlKey || window.event.altKey))
+        if (!(localStorage['enableHoverForHighlights'] === "true") && !(window.event.ctrlKey || window.event.altKey))
           return;
         nodeGroups.attr('class', function(v) {
           return existingNodeClass + (d.source === v || d.target === v ? "focuson" : "focusoff");

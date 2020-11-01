@@ -34,6 +34,9 @@ div#formwrapper form#findentity {
 div#formwrapper form#findentity input[type=text] {
 	width: 6em;
 }
+div#formwrapper form#controls {
+	margin-left: 2em;
+}
 
 table.outer.n0 a {
 	color: inherit;
@@ -79,6 +82,14 @@ li span.tipicon {
 		<input type="text" name="entityidsel" placeholder="Entity ID" />
 		<span class="fa fa-info-circle tipicon" data-toggle="popover" data-content="Toggle highlight for node of any type with this exact eid if it is already displayed. You may also put multiple eids separated with ; and no spaces"></span>
 		<input type="submit" value="Find!" />
+	</form>
+
+	<form id="controls">
+		Hover for
+		<input type="checkbox" id="check-highlights" name="highlights">
+		<label for="check-highlights">Highlights</label>
+		<input type="checkbox" id="check-tooltips" name="tooltips">
+		<label for="check-tooltips">Tooltips</label>
 	</form>
 	</div>
 
@@ -144,7 +155,7 @@ $(document).ready(function() {
 	$("span#helpicon").on("click", function() {
 		Swal.fire({
 			title: "Tip",
-			html: '<table class="tipstable"><tr><th>Action + Effect</th><th>While holding down this key</th></tr><tr><td>Scroll to zoom</td><td>Alt</td></tr><tr><td>Drag and drop to pan</td><td>Shift/Alt</td></tr><tr><td>Click on nodes/edges to toggle display of properties</td><td>N/A</td></tr><tr><td>Hover on nodes/edges to view properties</td><td>Shift/Alt</td></tr><!--<tr><td>Hover on nodes/edges to highlight only related nodes/edges</td><td>Control/Alt</td></tr>--></table>'
+			html: '<table class="tipstable"><tr><th>Action + Effect</th><th>While holding down this key</th></tr><tr><td>Scroll to zoom</td><td>N/A</td></tr><tr><td>Drag and drop to pan</td><td>N/A</td></tr><tr><td>Click on nodes/edges to toggle display of properties</td><td>N/A</td></tr><tr><td>Hover on nodes/edges to view properties</td><td>Shift/Alt</td></tr><tr><td>Hover on nodes/edges to highlight only related nodes/edges</td><td>Control/Alt</td></tr></table>'
 		});
 	});
 
@@ -164,6 +175,27 @@ $(document).ready(function() {
 		});
 		return false;
 	});
+
+	$("#formwrapper form#controls input[name=highlights]").change(function() {
+		localStorage['enableHoverForHighlights'] = this.checked;
+	});
+
+	$("#formwrapper form#controls input[name=tooltips]").change(function() {
+		localStorage['enableHoverForTooltips'] = this.checked;
+		if (this.checked) {
+			popoverHover();
+		} else {
+			popoverClick();
+		}
+	});
+
+	if (localStorage['enableHoverForHighlights'] === undefined) {
+		localStorage['enableHoverForHighlights'] = false;
+	}
+	$("form#controls input[name=highlights]").prop("checked", localStorage['enableHoverForHighlights'] === "true");
+	if (localStorage['enableHoverForTooltips'] === undefined) {
+		localStorage['enableHoverForTooltips'] = false;
+	}
 });
 </script>
 {{ end }}

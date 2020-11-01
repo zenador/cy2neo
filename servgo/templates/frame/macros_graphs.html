@@ -144,17 +144,30 @@ function executeGraphQuery(endpoint, params, cb) {
 						$(popoverSelector).off('mouseup', handler);
 					});
 				});
-				popoverClick();
+				// popoverClick();
+				$("form#controls input[name=tooltips]").prop("checked", localStorage['enableHoverForTooltips'] === "true").change();
 				var isKeyDown = false;
 				$("body").keydown(function(e) {
-					if (!isKeyDown && (e.which == 16 || e.which == 18)) { // shift or alt
+					if (!isKeyDown && (e.which == 16 || e.which == 18 || e.which == 17)) { // shift or alt or ctrl
 						isKeyDown = true;
-						popoverHover();
+						// popoverHover();
+						if (e.which == 16 || e.which == 18) {
+							$("form#controls input[name=tooltips]").prop("checked", true).change();
+						}
+						if (e.which == 18 || e.which == 17) {
+							$("form#controls input[name=highlights]").prop("checked", true).change();
+						}
 					}
 				}).keyup(function(e) {
-					if (e.which == 16 || e.which == 18) { // shift or alt
+					if (e.which == 16 || e.which == 18 || e.which == 17) {
 						isKeyDown = false;
-						popoverClick();
+						// popoverClick();
+						if (e.which == 16 || e.which == 18) {
+							$("form#controls input[name=tooltips]").prop("checked", false).change();
+						}
+						if (e.which == 18 || e.which == 17) {
+							$("form#controls input[name=highlights]").prop("checked", false).change();
+						}
 					}
 				});
 

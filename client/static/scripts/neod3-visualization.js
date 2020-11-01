@@ -268,7 +268,7 @@ function Neod3Renderer() {
           });
           return arrows.exit().remove();
         }
-
+/*
         function keyHandler() {
             if (d3.event.altKey || d3.event.shiftKey) {
                 enableZoomHandlers();
@@ -277,7 +277,7 @@ function Neod3Renderer() {
                 disableZoomHandlers();
             }
         }
-
+*/
         var links = visualization.links;
         var nodes = visualization.nodes;
         for (var i = 0; i < links.length; i++) {
@@ -455,9 +455,9 @@ function Neod3Renderer() {
         zoomHandlers.touchstart = renderer.on("touchstart.zoom");
         zoomHandlers.touchmove = renderer.on("touchmove.zoom")
         zoomHandlers.touchend = renderer.on("touchend.zoom");
-        disableZoomHandlers();
+        // disableZoomHandlers();
 
-        d3.select('body').on("keydown", keyHandler).on("keyup", keyHandler);
+        // d3.select('body').on("keydown", keyHandler).on("keyup", keyHandler);
 
         function refresh() {
             graphView.height($container.height());
