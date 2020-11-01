@@ -24,6 +24,8 @@ func auth(handler http.HandlerFunc) http.HandlerFunc {
 			http.Error(w, "Unauthorized.", http.StatusUnauthorized)
 			return
 		}
+		// w.Header().Set("Access-Control-Allow-Origin", `*`)
+		// w.Header().Set("Access-Control-Allow-Headers", `*`)
 		handler(w, r)
 	}
 }

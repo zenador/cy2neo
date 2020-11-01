@@ -186,6 +186,9 @@ function Neod3Renderer() {
             r : r
           });
           circles.attr({
+            class: function(node) {
+              return "legend " + node.replace(/node\./g, 'ntype-');
+            },
             cy: function(node) {
               return (keys.indexOf(node)+1)*2.2*r;
             },
@@ -228,18 +231,23 @@ function Neod3Renderer() {
 
         function legendLinks(svg, styles, offset) {
           var keys = Object.keys(styles).sort();
-          var circles = svg.selectAll('circle.legendLink').data(keys);
+          var arrows = svg.selectAll('path.legendLink').data(keys);
           var r=20;
-          circles.enter().append('circle').classed('legendLink', true).attr({
-            cx: 2*r,
-            r : r
+          var shaftRadius=1, headRadius=4, shaftLength=26, arrowLength=34;
+          arrows.enter().append('path').classed('legendLink', true).attr({
+            d: ['M', 0, shaftRadius, 'L', shaftLength, shaftRadius, 'L', shaftLength, headRadius, 'L', arrowLength, 0, 'L', shaftLength, -headRadius, 'L', shaftLength, -shaftRadius, 'L', 0, -shaftRadius, 'Z'].join(' '),
           });
-          circles.attr({
-            cy: function(node) {
-              return (offset+keys.indexOf(node)+1)*2.2*r;
+          arrows.attr({
+            class: function(link) {
+              return "legendLink " + link.replace(/relationship\./g, 'rtype-');
             },
-            fill: function(node) {
-              return styles[node]['color'];
+            transform: function(link) {
+              var x = 2*r - 15;
+              var y = (offset+keys.indexOf(link)+1)*2.2*r + 2;
+              return "translate("+x+","+y+")";
+            },
+            fill: function(link) {
+              return styles[link]['color'];
             }
           });
           var text = svg.selectAll('text.legendLink').data(keys);
@@ -258,7 +266,7 @@ function Neod3Renderer() {
           }).attr('y', function(link) {
               return (offset+keys.indexOf(link)+1)*2.2*r+6;
           });
-          return circles.exit().remove();
+          return arrows.exit().remove();
         }
 
         function keyHandler() {
@@ -292,6 +300,144 @@ function Neod3Renderer() {
             .style(styleSheet)
             .width($container.width()).height($container.height()).on('nodeClicked', dummyFunc).on('relationshipClicked', dummyFunc).on('nodeDblClicked', dummyFunc);
         var svg = d3.select("#" + id).append("svg");
+
+        var filterDef = svg.append("defs");
+        var glowDefs = [["glowc", "#00FFFF"]];
+        glowDefs.forEach(function([filterName, colorCode], index) {
+            var newFilter = filterDef.append("filter")
+                .attr("id", filterName)
+                .attr("x", "-50%")
+                .attr("y", "-50%")
+                .attr("width", "200%")
+                .attr("height", "200%");
+            newFilter
+                .append("feDropShadow")
+                .attr("dx", 0)
+                .attr("dy", 0)
+                .attr("stdDeviation", 10)
+                .attr("flood-color", colorCode)
+                .attr("flood-opacity", 1);
+            // newFilter
+            //     .append("feFlood")
+            //     .attr("flood-color", "green");
+        });
+        /*
+        var shadowDefs = [["shadowr", "#FF0000"]];
+        shadowDefs.forEach(function([filterName, colorCode], index) {
+            var newFilter = filterDef.append("filter")
+                .attr("id", filterName)
+                .attr("x", "-50%")
+                .attr("y", "-50%")
+                .attr("width", "200%")
+                .attr("height", "200%");
+            newFilter
+                .append("feDropShadow")
+                .attr("dx", "3")
+                .attr("dy", "3")
+                .attr("stdDeviation", 0)
+                .attr("flood-color", colorCode)
+                .attr("flood-opacity", 1);
+        });
+        var strokeDefs = [["strokeo", "#FF9300"]];
+        strokeDefs.forEach(function([filterName, colorCode], index) {
+            var newFilter = filterDef.append("filter")
+                .attr("id", filterName)
+                .attr("x", "-100%")
+                .attr("y", "-100%")
+                .attr("width", "250%")
+                .attr("height", "250%");
+            newFilter
+                .append("feFlood")
+                .attr("flood-color", colorCode)
+                .attr("result", "outside-color");
+            newFilter
+                .append("feMorphology")
+                .attr("in", "SourceAlpha")
+                .attr("operator", "dilate")
+                .attr("radius", 3)
+                .attr("result", "expanded");
+            newFilter
+                .append("feComposite")
+                .attr("in", "outside-color")
+                .attr("in2", "expanded")
+                .attr("operator", "in");
+            newFilter
+                .append("feComposite")
+                .attr("in", "SourceGraphic");
+        });
+        */
+        var gradientDefs = [["gradientyo", "radial", "#000000", "#FF9300"]];
+        gradientDefs.forEach(function([filterName, gradientType, colorCode, colorCode2], index) {
+            var newFilter, startOffset, stopOffset, startOpacity, stopOpacity;
+            if (gradientType == "linear") {
+                newFilter = filterDef.append("linearGradient")
+                    .attr("id", filterName)
+                    .attr("x1", "0%")
+                    .attr("y1", "0%")
+                    .attr("x2", "100%")
+                    .attr("y2", "100%");
+                startOffset = "0%", stopOffset = "100%";
+                startOpacity = 1.0, stopOpacity = 1.0;
+            } else {
+                newFilter = filterDef.append("radialGradient")
+                    .attr("id", filterName)
+                    .attr("cx", "50%")
+                    .attr("cy", "50%")
+                    .attr("r", "60%")
+                    .attr("fx", "50%")
+                    .attr("fy", "50%");
+                startOffset = "70%", stopOffset = "90%";
+                startOpacity = 1.0, stopOpacity = 1.0;
+            }
+            newFilter
+                .append("stop")
+                .attr("offset", startOffset)
+                .attr("stop-color", colorCode)
+                .attr("stop-opacity", startOpacity);
+            newFilter
+                .append("stop")
+                .attr("offset", stopOffset)
+                .attr("stop-color", colorCode2)
+                .attr("stop-opacity", stopOpacity);
+        });
+        /*
+        var patternDefs = [];
+        patternDefs.forEach(function([nodeType, imgName, colorCode], index) {
+            var side = "40px";
+            // var newPattern = filterDef.append("pattern")
+            //     .attr("id", "img-"+nodeType)
+            //     .attr("width", "100%")
+            //     .attr("height", "100%");
+            // newPattern
+            //     .append("image")
+            //     .attr("width", side)
+            //     .attr("height", side)
+            //     .attr("xlink:href", "/static/assets/icons/"+imgName+".png");
+            var newMask = filterDef.append("mask")
+                .attr("id", "mask-"+nodeType);
+            newMask
+                .append("image")
+                .attr("width", side)
+                .attr("height", side)
+                .attr("xlink:href", "/static/assets/icons/"+imgName+".png");
+            var newPattern = filterDef.append("pattern")
+                .attr("id", "img-"+nodeType)
+                .attr("width", "100%")
+                .attr("height", "100%");
+            newPattern
+                .append("rect")
+                .attr("width", side)
+                .attr("height", side)
+                .attr("fill", "white");
+            newPattern
+                .append("rect")
+                .attr("width", side)
+                .attr("height", side)
+                .attr("fill", colorCode)
+                .attr("mask", "url(#mask-"+nodeType+")");
+        });
+        */
+
         var renderer = svg.data([graphModel]);
         legend(svg,existingStyles);
         if (DIFF_COLOUR_EDGES)

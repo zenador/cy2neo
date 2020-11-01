@@ -31,6 +31,7 @@ Tested on Neo4j Server 4.1.1.
 - new option to use separate colours for edges based on type and to hide edge captions
 - new option to highlight linked vertices and edges on hover
 - allow highlighting focus nodes based on user-defined entity id
+- allow searching for entity ids to highlight those nodes
 - add helpful tooltips
 - integrate with socket.io
 - other minor UI fixes and debugging improvements and library upgrades

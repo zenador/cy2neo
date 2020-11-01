@@ -1279,6 +1279,8 @@ neo.viz = function(el, graph, layout, style) {
     }
     nodeGroups.exit().remove();
 
+    var existingNodeClass = "node ";
+    var existingLinkClass = "relationship ";
     if (HOVER_NODE_HIGHLIGHT) {
       var linkDict = {};
       relationships.forEach(function(d) {
@@ -1287,34 +1289,33 @@ neo.viz = function(el, graph, layout, style) {
       function isConnected(a, b) {
         return linkDict[a.id + "," + b.id] || linkDict[b.id + "," + a.id] || a.id == b.id;
       }
-      var offOpacity = 0.2;
       nodeGroups.on('mouseover', function(d) {
         if (!(window.event.ctrlKey || window.event.altKey))
           return;
-        nodeGroups.style('opacity', function(v) {
-          return isConnected(d, v) ? 1 : offOpacity;
+        nodeGroups.attr('class', function(v) {
+          return existingNodeClass + (isConnected(d, v) ? "focuson" : "focusoff");
         });
-        relationshipGroups.style('opacity', function(l) {
-          return l.source === d || l.target === d ? 1 : offOpacity;
+        relationshipGroups.attr('class', function(l) {
+          return existingLinkClass + (l.source === d || l.target === d ? "focuson": "focusoff");
         });
       }).on('mouseout', function(d) {
-        nodeGroups.style('opacity', 1);
-        relationshipGroups.style('opacity', 1);
+        nodeGroups.classed("focuson focusoff", false);
+        relationshipGroups.classed("focuson focusoff", false);
       });
     }
     if (HOVER_EDGE_HIGHLIGHT) {
       relationshipGroups.on('mouseover', function(d) {
         if (!(window.event.ctrlKey || window.event.altKey))
           return;
-        nodeGroups.style('opacity', function(v) {
-          return d.source === v || d.target === v ? 1 : offOpacity;
+        nodeGroups.attr('class', function(v) {
+          return existingNodeClass + (d.source === v || d.target === v ? "focuson" : "focusoff");
         });
-        relationshipGroups.style('opacity', function(l) {
-          return l === d ? 1 : offOpacity;
+        relationshipGroups.attr('class', function(l) {
+          return existingLinkClass + (l === d ? "focuson" : "focusoff");
         });
       }).on('mouseout', function(d) {
-        nodeGroups.style('opacity', 1);
-        relationshipGroups.style('opacity', 1);
+        nodeGroups.classed("focuson focusoff", false);
+        relationshipGroups.classed("focuson focusoff", false);
       });
     }
 
@@ -1560,6 +1561,9 @@ function getEid(entity) {
         cy: 0
       });
       circles.attr({
+        class: function(node) {
+          return "outline ntype-" + node.labels[0];
+        },
         r: function(node) {
           return node.radius;
         },
@@ -1597,6 +1601,8 @@ function getEid(entity) {
       });
       text.text(function(line) {
         return line.text;
+      }).attr('class', function(line) {
+        return "ntype-" + line.node.labels[0];
       }).attr('y', function(line) {
         return line.baseline;
       }).attr('font-size', function(line) {
@@ -1645,7 +1651,9 @@ function getEid(entity) {
         return [rel];
       });
       paths.enter().append('path');
-      paths.attr('fill', function(rel) {
+      paths.attr('class', function(rel) {
+        return "rtype-" + rel.type;
+      }).attr('fill', function(rel) {
         return viz.style.forRelationship(rel).get('color');
       }).attr('stroke', 'none');
       return paths.exit().remove();
@@ -1667,7 +1675,9 @@ function getEid(entity) {
       texts.enter().append("text").attr({
         "text-anchor": "middle"
       });
-      texts.attr('font-size', function(rel) {
+      texts.attr('class', function(rel) {
+        return "rtype-" + rel.type;
+      }).attr('font-size', function(rel) {
         return viz.style.forRelationship(rel).get('font-size');
       }).attr('fill', function(rel) {
         return viz.style.forRelationship(rel).get('text-color-' + rel.captionLayout);

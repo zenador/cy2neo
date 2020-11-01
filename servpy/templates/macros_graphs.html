@@ -173,10 +173,7 @@ callGraphQuery = function(endpoint, params, neod3, graphId, tableId) {
 			c.empty();
 			neod3.render(graphId, c, graph);
 			renderResult(tableId, res.table);
-			$('g.node circle[data-eid="'+res.eid+'"]').attr({
-				"stroke-width": 4,
-				"stroke": "#FF9300",
-			});
+			$('g.node circle[data-eid="'+res.eid+'"]').addClass("highlighted");
 		} else {
 			if (err) {
 				console.log(err);

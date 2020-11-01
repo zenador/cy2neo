@@ -18,6 +18,21 @@ div.mainbar {
 	width: 100%;
 }
 
+div#formwrapper {
+	position:absolute;
+	top: 0.5em;
+	left: 15em;
+}
+div#formwrapper form {
+	display: inline-block;
+}
+div#formwrapper form#findentity {
+	margin-left: 2em;
+}
+div#formwrapper form#findentity input[type=text] {
+	width: 6em;
+}
+
 table.tipstable, table.tipstable th, table.tipstable td {
 	border: 1px solid black;
 }
@@ -53,6 +68,14 @@ li span.tipicon {
 		<li><span class="fa fa-check tipicon" id="doneicon" style="display: none; color: cyan;" data-toggle="popover" data-content="Graph has finished loading. If it is still empty, it means the query returned no results"></span></li>
 		<li><span class="fa fa-question-circle tipicon" id="noteicon" style="display: none; color: orange;" data-toggle="popover" data-content=""></span></li>
 	</ul>
+
+	<div id="formwrapper">
+	<form id="findentity">
+		<input type="text" name="entityidsel" placeholder="Entity ID" />
+		<span class="fa fa-info-circle tipicon" data-toggle="popover" data-content="Toggle highlight for node of any type with this exact eid if it is already displayed. You may also put multiple eids separated with ; and no spaces"></span>
+		<input type="submit" value="Find!" />
+	</form>
+	</div>
 
 	<!-- Tab panes -->
 	<div class="tab-content">
@@ -102,6 +125,13 @@ $(document).ready(function() {
 		"trigger": "hover",
 		"container": "body",
 		"html": true,
+	});
+
+	$("#formwrapper form#findentity").on("submit", function(){
+		$("form#findentity input[name=entityidsel]").val().split(";").forEach(function(eid) {
+			$('g.node circle[data-eid="'+eid+'"]').toggleClass("highlighted");
+		});
+		return false;
 	});
 });
 </script>

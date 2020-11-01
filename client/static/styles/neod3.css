@@ -18,3 +18,15 @@ g.node text[stroke="#f79235"] {text-shadow: -1px -1px 2px #f79235, -1px 1px 2px 
 g.node text[stroke="#785cc7"] {text-shadow: -1px -1px 2px #785cc7, -1px 1px 2px #785cc7, -1px 0 2px #785cc7, 1px -1px 2px #785cc7, 1px 1px 2px #785cc7, 1px 0 2px #785cc7, 0 -1px 2px #785cc7, 0 1px 2px #785cc7}
 g.node text[stroke="#d05e7c"] {text-shadow: -1px -1px 2px #d05e7c, -1px 1px 2px #d05e7c, -1px 0 2px #d05e7c, 1px -1px 2px #d05e7c, 1px 1px 2px #d05e7c, 1px 0 2px #d05e7c, 0 -1px 2px #d05e7c, 0 1px 2px #d05e7c}
 g.node text[stroke="#3986b7"] {text-shadow: -1px -1px 2px #3986b7, -1px 1px 2px #3986b7, -1px 0 2px #3986b7, 1px -1px 2px #3986b7, 1px 1px 2px #3986b7, 1px 0 2px #3986b7, 0 -1px 2px #3986b7, 0 1px 2px #3986b7}
+
+g.node circle.outline.highlighted {
+    stroke-width: 5px;
+    stroke: url(#gradientyo) !important;
+}
+g.node.focuson, g.relationship.focuson {
+    filter:url(#glowc);
+    opacity: 1;
+}
+g.node.focusoff, g.relationship.focusoff {
+    opacity: 0.2;
+}
