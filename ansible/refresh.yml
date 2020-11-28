@@ -7,6 +7,7 @@
       command: supervisorctl stop go
     - name: Stop Neo4j for uninstall
       service: state=stopped name=neo4j enabled=true
+      ignore_errors: yes
     - name: Uninstall Neo4j APT # Somehow need to do this to replace the data with fresh imports or the db won't be accessible
       apt:
         pkg: neo4j
@@ -33,7 +34,7 @@
     - name: Install Neo4j APT
       apt:
         update_cache: yes
-        pkg: neo4j=1:4.1.3
+        pkg: neo4j=1:4.2.1
         state: present
         # force: yes
         # install_recommends: yes
@@ -44,7 +45,7 @@
     - name: Stop Neo4j to import
       service: state=stopped name=neo4j enabled=true
     - name: Move apoc jar
-      command: mv /var/lib/neo4j/labs/apoc-4.1.0.3-core.jar /var/lib/neo4j/plugins/apoc-4.1.0.3-core.jar
+      command: mv /var/lib/neo4j/labs/apoc-4.2.0.0-core.jar /var/lib/neo4j/plugins/apoc-4.2.0.0-core.jar
     - name: Copy import csvs
       copy:
         src: ../db/import/

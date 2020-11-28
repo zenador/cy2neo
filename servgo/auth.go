@@ -6,8 +6,8 @@ import (
 	"net/http"
 )
 
-var userhash []byte = hasher("admin")
-var passhash []byte = hasher("password")
+var userhash []byte = hasher(getEnv("GRAPH_UI_USER", "admin"))
+var passhash []byte = hasher(getEnv("GRAPH_UI_PW", "password"))
 var realm string = "Please enter username and password"
 
 func hasher(s string) []byte {
