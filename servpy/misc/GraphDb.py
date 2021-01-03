@@ -15,7 +15,7 @@ graph_endpoint = 'http://{}:{}/db/data/transaction/commit'.format(host, port)
 bolt_endpoint = 'bolt://{}:{}'.format(host, bolt_port)
 
 class GraphDb:
-	def __init__(self):
+	def init(self):
 		self.driver = GraphDatabase.driver(bolt_endpoint, auth=graph_auth, encrypted=False)
 
 	@classmethod
@@ -24,6 +24,7 @@ class GraphDb:
 
 		if not hasattr(cls, "_instance"):
 			cls._instance = cls()
+			cls._instance.init()
 
 		return cls._instance
 
